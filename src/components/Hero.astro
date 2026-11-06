@@ -1,0 +1,53 @@
+---
+import Mark from './Mark.astro';
+import { hero, site } from '../content/copy';
+import { film } from '../content/film';
+// Scene A. The posters are rendered from the same three.js scene (tools/render-posters.mjs):
+// start = first frame (idle, red dot), end = final frame (cast landed, drawing on both screens).
+// Reduced motion gets the end poster straight away. With WebGL, stage-3d takes over and plays the
+// cast once (time-based); scrolling only drifts the camera a few degrees. The page's signal line
+// starts at .anc-out under the stage.
+---
+<section id="top" class="hero" aria-labelledby="h-hero">
+  <div class="wrap hero-grid">
+    <div class="hero-copy">
+      <div class="lockup">
+        <Mark uid="hero" class="lockup-mark" />
+        <p><span class="lockup-name">{hero.brand}</span><span class="lockup-desc">{hero.descriptor}</span></p>
+      </div>
+      <h1 id="h-hero"><span class="h1-l">{hero.h1[0]}</span> <span class="h1-l h1-key">{hero.h1[1]}</span></h1>
+      <svg class="sig" viewBox="0 0 600 60" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+        <path pathLength="1" d="M2 30 C 120 30, 200 14, 300 26 S 470 52, 598 20"/>
+        <circle class="sig-dot" cx="598" cy="20" r="4"/>
+      </svg>
+      <p class="lede">{hero.lede}</p>
+      <ul class="perks">
+        {hero.perks.map((p) => <li>{p}</li>)}
+      </ul>
+      <div class="cta-row">
+        <a class="btn btn-play" href="#film">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 3.5v9l7.5-4.5z" fill="currentColor"/></svg>
+          {hero.cta}<span class="dur" aria-hidden="true">{film.duration}</span><span class="sr">, {film.durationLabel}</span>
+        </a>
+        {/* availability is said once, in the availability section (and the phone bar); the hero only gets a
+            link when there is something to get */}
+        {site.playUrl && <a class="ghost-link" href={site.playUrl} rel="noopener">{site.playCta}</a>}
+      </div>
+    </div>
+    <div class="stage" id="stage" role="img" aria-label={hero.stageLabel}
+      data-ready={hero.badgeReady} data-casting={hero.badgeCasting} data-stop={hero.stop} data-wait={hero.wait} data-address={site.address}>
+      <picture class="poster poster-start">
+        <source media="(prefers-reduced-motion: reduce)" type="image/avif" srcset="/posters/hero-end.avif">
+        <source media="(prefers-reduced-motion: reduce)" type="image/webp" srcset="/posters/hero-end.webp">
+        <source type="image/avif" srcset="/posters/hero-start.avif">
+        <img src="/posters/hero-start.webp" width="1600" height="1250" alt="" fetchpriority="high" decoding="async">
+      </picture>
+      <picture class="poster poster-end">
+        <source type="image/avif" srcset="/posters/hero-end.avif">
+        <img src="/posters/hero-end.webp" width="1600" height="1250" alt="" loading="lazy" decoding="async">
+      </picture>
+      <div class="stage-3d" id="stage3d"></div>
+      <i class="anc-out" data-thread></i>
+    </div>
+  </div>
+</section>

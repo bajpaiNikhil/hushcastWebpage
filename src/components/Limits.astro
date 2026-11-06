@@ -1,0 +1,12 @@
+---
+import SectionHead from './SectionHead.astro';
+import { limits as l } from '../content/copy';
+---
+<section id="limits" class="sec" aria-labelledby="h-limits">
+  <div class="wrap">
+    <SectionHead id="h-limits" idx={l.idx} eyebrow={l.eyebrow} h2={l.h2} />
+    <ul class="limits">
+      {l.items.map(([b, s]) => <li><b>{b}</b><span>{s}</span></li>)}
+    </ul>
+  </div>
+</section>

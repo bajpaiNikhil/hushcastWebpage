@@ -1,0 +1,8 @@
+---
+import Base from '../layouts/Base.astro';
+import Doc from '../components/Doc.astro';
+import { supportDoc } from '../content/legal';
+---
+<Base title={supportDoc.title} description={supportDoc.description} path="/support/">
+  <Doc doc={supportDoc} />
+</Base>

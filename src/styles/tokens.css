@@ -1,0 +1,27 @@
+/* Design tokens. Charcoal foundation from the app (Color.kt); the owner approved a controlled
+   colour palette on 3 Nov 2026. Use these names, never raw hex values in components.
+   - Red and green keep their app meaning: red = idle/stop, green = casting / the local signal.
+   - Cyan is the illustrative accent (headline phrase, drawing, selected states).
+   - Mode accents: Live cyan, Listen violet, Cinema amber. Always paired with a label or icon. */
+:root{
+  --bg:#0B0B0D;
+  --s1:#161618;
+  --s2:#1E1E21;
+  --s3:#26262A;
+  --hair:rgba(255,255,255,.08);
+  --hair2:rgba(255,255,255,.14);
+  --t1:#F5F5F7;
+  --t2:#A1A1A6;
+  --t3:#7C7C82;
+  --red:#E05555;
+  --green:#34C759;
+  --cyan:#5CC8E6;
+  --violet:#A58BFA;
+  --amber:#F2A33A;
+  --pen-blue:#3D8BFF;
+  --pen-pink:#FF5C8A;
+  --paper:#F6F6F8;
+  --warn:#BA7517;
+  --ease:cubic-bezier(.22,.61,.36,1);
+  --wrap:1120px;
+}

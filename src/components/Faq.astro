@@ -1,0 +1,13 @@
+---
+import SectionHead from './SectionHead.astro';
+import { faqSec } from '../content/copy';
+import { faq } from '../content/faq';
+---
+<section id="faq" class="sec" aria-labelledby="h-faq">
+  <div class="wrap">
+    <SectionHead id="h-faq" idx={faqSec.idx} eyebrow={faqSec.eyebrow} h2={faqSec.h2} />
+    <div class="faq">
+      {faq.map((f) => <details><summary>{f.q}</summary><p class="ans">{f.a}</p></details>)}
+    </div>
+  </div>
+</section>

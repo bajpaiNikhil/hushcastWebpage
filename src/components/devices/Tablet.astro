@@ -1,0 +1,9 @@
+---
+// thread: a stop on the road. visit: on a wide page the road also travels to it (route.ts).
+interface Props { class?: string; thread?: boolean; visit?: boolean }
+const { class: cls = '', thread = false, visit = thread } = Astro.props;
+---
+<div class:list={['tablet', cls]} data-stop={thread ? '' : undefined} data-visit={visit ? '' : undefined}>
+  <div class="screen"><slot /></div>
+  <slot name="outside" />
+</div>

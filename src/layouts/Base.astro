@@ -1,0 +1,71 @@
+---
+import '../styles/tokens.css';
+import '../styles/global.css';
+import { site, nav, footer } from '../content/copy';
+import Mark from '../components/Mark.astro';
+interface Props { title?: string; description?: string; path?: string }
+const { title = site.title, description = site.description, path = '/' } = Astro.props;
+const canonical = new URL(path, site.url).href;
+const ogImage = new URL(site.ogImage, site.url).href;
+---
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>{title}</title>
+<meta name="description" content={description}>
+<meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="dark">
+<meta name="generator" content={Astro.generator}>
+<link rel="canonical" href={canonical}>
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="HushCast">
+<meta property="og:title" content={title}>
+<meta property="og:description" content={description}>
+<meta property="og:url" content={canonical}>
+<meta property="og:image" content={ogImage}>
+<meta name="twitter:card" content="summary_large_image">
+<slot name="head" />
+<script is:inline>document.documentElement.classList.add('js')</script>
+</head>
+<body>
+<a class="skip" href="#main">{nav.skip}</a>
+<header class="nav">
+  <div class="wrap nav-in">
+    <a class="logo" href="/#top" aria-label={nav.logoLabel}><Mark uid="nav" class="logo-mark" /><span>HushCast</span></a>
+    <nav aria-label="Sections">
+      {nav.links.map((l) => <a href={'/' + l.href}>{l.label}</a>)}
+    </nav>
+    {site.playUrl
+      ? <a class="nav-get" href={site.playUrl} rel="noopener">{site.playCta}</a>
+      : <a class="nav-get" href={'/' + nav.get.href}>{nav.get.label}</a>}
+  </div>
+</header>
+
+<main id="main" tabindex="-1"><slot /></main>
+
+<footer>
+  <div class="wrap foot-in">
+    <div>
+      <a class="logo" href="/#top"><Mark uid="foot" class="logo-mark" />HushCast</a>
+      <p class="fine mt-6">{footer.noTrackers}</p>
+    </div>
+    <nav aria-label="Legal">{footer.legal.map((l) => <a href={l.href}>{l.label}</a>)}</nav>
+    <p class="proof">{footer.proofA} <b id="tp">0</b>. {footer.proofB}</p>
+  </div>
+</footer>
+
+<div class="mbar" id="mbar">
+  <a class="mbar-film" href="/#film"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 3.5v9l7.5-4.5z" fill="currentColor"/></svg>{nav.mobileFilm} <span class="dur">1:57</span></a>
+  {site.playUrl ? <a class="mbar-status" href={site.playUrl} rel="noopener">{site.playCta}</a> : <a class="mbar-status" href="/#get-app">{site.playSoon}</a>}
+</div>
+<div class="toast" id="toast" role="status"></div>
+<script>
+  import '../scripts/proof';
+</script>
+</body>
+</html>

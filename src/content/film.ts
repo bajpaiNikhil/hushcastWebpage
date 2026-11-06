@@ -1,0 +1,22 @@
+// The approved intro film (HushCast-intro-v4, 1:57). Web copy, captions and poster: tools/make-film.py.
+export const film = {
+  src: '/media/hushcast-intro-v4.mp4',
+  poster: '/media/hushcast-intro-v4.webp',
+  captions: '/media/hushcast-intro-v4.en.vtt',
+  title: 'HushCast. Cast quietly.',
+  duration: '1:57',
+  durationLabel: '1 minute 57 seconds',
+  eyebrow: 'The film',
+  heading: ['See a cast,', 'start to finish.'],
+  lede: 'Two minutes from tapping Start to watching in a browser: Live, Listen and Cinema, on one WiFi, with no account, no cloud and no upload.',
+  play: 'Play the film',
+  modes: 'Live · Listen · Cinema',
+  captionLanguage: 'English',
+  captionNote: 'The film shows its text on screen. English captions are in the player menu.',
+  availability: 'Coming soon to Google Play',
+  availabilityLink: 'Availability',
+  fallback: 'Download the film as an MP4 (7 MB)',
+  descriptionLabel: 'What the film shows',
+  description: 'A tablet and a laptop inside a house outline: a line carries the cast through a router while the cloud stays outside. Screen recordings show Android asking for permission, a link and QR code, and a drawing appearing in a browser about a fifth of a second later. The app icon dot turns from red to green. Sound rings illustrate Listen, and a short film plays in Cinema about ten seconds behind. The cast carries on when the internet is unplugged, then ends with Stop.',
+  credit: 'Cinema scenes use Big Buck Bunny © Blender Foundation, peach.blender.org, licensed CC BY 3.0.',
+} as const;

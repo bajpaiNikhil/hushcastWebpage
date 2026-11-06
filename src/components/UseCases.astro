@@ -1,0 +1,25 @@
+---
+// Why someone wants HushCast, in three real situations. Only actual capabilities (PRD section 4).
+import { useCases as u } from '../content/copy';
+const art: Record<string, string> = {
+  0: '<rect x="6" y="14" width="30" height="20" rx="3"/><path d="M11 28c3-6 6-6 9-2s6 4 9-3" class="ink"/><rect x="44" y="6" width="34" height="23" rx="2.5"/><path d="M48 23c3-6 6-6 9-2s6 4 9-3" class="ink"/><path d="M40 40h44"/><path d="M37 24h6" class="sig"/>',
+  1: '<rect x="8" y="8" width="16" height="30" rx="3"/><rect x="11" y="13" width="10" height="7" rx="1.5" class="ink"/><path d="M11 24h10M11 28h7"/><rect x="40" y="6" width="38" height="25" rx="2.5"/><rect x="47" y="11" width="24" height="12" rx="2" class="ink"/><path d="M36 38h46"/><path d="M27 22h9" class="sig"/>',
+  2: '<rect x="6" y="14" width="28" height="18" rx="3"/><path d="m17 19 6 4-6 4z" class="ink"/><rect x="40" y="4" width="42" height="27" rx="2.5"/><path d="m57 12 8 5.5-8 5.5z" class="ink"/><path d="M55 35h12"/><path d="M36 23h5" class="sig"/>',
+};
+// pathLength="1" lets each line draw itself in when the walker arrives (the dashed signal just fades in)
+const drawn = (svg: string) => svg.replace(/<(rect|path)(?![^>]*class="sig")/g, '<$1 pathLength="1"');
+---
+<section class="cases" aria-label={u.label}>
+  <div class="wrap">
+    <ul class="case-list" data-thread="left">
+      {u.items.map((c, i) => (
+        <li class={`case rv case-${c.accent}`}>
+          <svg viewBox="0 0 88 44" aria-hidden="true" set:html={drawn(art[i])}></svg>
+          <p class="case-mode">{c.mode}</p>
+          <h3>{c.title}</h3>
+          <p class="case-text">{c.text}</p>
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>

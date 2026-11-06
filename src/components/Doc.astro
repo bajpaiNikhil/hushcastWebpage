@@ -1,0 +1,29 @@
+---
+import type { Doc } from '../content/legal';
+interface Props { doc: Doc }
+const { doc } = Astro.props;
+// headings get ids so a long document can have a short contents list at the top
+const slug = (t: string) => t.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+---
+<section class="page">
+  <div class="wrap">
+    <article class="prose">
+      <h1>{doc.h1}</h1>
+      {doc.updated && <p class="updated">{doc.updated}</p>}
+      <p>{doc.intro}</p>
+      {doc.toc && (
+        <nav class="toc" aria-labelledby="toc-h">
+          <h2 id="toc-h" class="toc-h">{doc.tocLabel}</h2>
+          <ol>{doc.blocks.map((b) => <li><a href={`#${slug(b.h)}`}>{b.h}</a></li>)}</ol>
+        </nav>
+      )}
+      {doc.blocks.map((b) => (
+        <>
+          <h2 id={slug(b.h)}>{b.h}</h2>
+          {b.p?.map((t) => <p>{t}</p>)}
+          {b.ul && <ul>{b.ul.map((t) => <li>{t}</li>)}</ul>}
+        </>
+      ))}
+    </article>
+  </div>
+</section>

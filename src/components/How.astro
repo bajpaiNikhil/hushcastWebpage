@@ -1,0 +1,36 @@
+---
+import Tablet from './devices/Tablet.astro';
+import Laptop from './devices/Laptop.astro';
+import Shot from './Shot.astro';
+import SectionHead from './SectionHead.astro';
+import { how } from '../content/copy';
+const [s1, s2, s3] = how.steps;
+---
+<section id="how" class="sec" aria-labelledby="h-how">
+  <div class="wrap">
+    <SectionHead id="h-how" idx={how.idx} eyebrow={how.eyebrow} h2={how.h2} lede={how.lede} />
+    <ol class="steps">
+      <li class="step rv">
+        <div class="dev">
+          <Tablet thread><Shot name="step-start" w={720} h={429} alt={how.shots.start} /></Tablet>
+        </div>
+        <p class="step-n" aria-hidden="true">{s1.n}</p><h3>{s1.title}</h3>
+        <p>{s1.text}</p>
+      </li>
+      <li class="step rv">
+        <div class="dev">
+          <Tablet thread><Shot name="step-open" w={720} h={432} alt={how.shots.open} /></Tablet>
+        </div>
+        <p class="step-n" aria-hidden="true">{s2.n}</p><h3>{s2.title}</h3>
+        <p>{s2.text}</p>
+      </li>
+      <li class="step rv">
+        <div class="dev">
+          <Laptop thread bare><Shot name="step-watch" w={720} h={388} alt={how.shots.watch} /></Laptop>
+        </div>
+        <p class="step-n" aria-hidden="true">{s3.n}</p><h3>{s3.title}</h3>
+        <p>{s3.text}</p>
+      </li>
+    </ol>
+  </div>
+</section>

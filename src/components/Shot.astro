@@ -1,0 +1,9 @@
+---
+// A real app screenshot, AVIF with WebP fallback. Files live in public/screens/.
+interface Props { name: string; w: number; h: number; alt: string; eager?: boolean }
+const { name, w, h, alt, eager = false } = Astro.props;
+---
+<picture class="shot">
+  <source type="image/avif" srcset={`/screens/${name}.avif`}>
+  <img src={`/screens/${name}.webp`} width={w} height={h} alt={alt} loading={eager ? 'eager' : 'lazy'} decoding="async">
+</picture>

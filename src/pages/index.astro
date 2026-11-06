@@ -1,0 +1,25 @@
+---
+import Base from '../layouts/Base.astro';
+import Hero from '../components/Hero.astro';
+import How from '../components/How.astro';
+import UseCases from '../components/UseCases.astro';
+import Modes from '../components/Modes.astro';
+import Privacy from '../components/Privacy.astro';
+import Pricing from '../components/Pricing.astro';
+import Limits from '../components/Limits.astro';
+import Faq from '../components/Faq.astro';
+import GetApp from '../components/GetApp.astro';
+import Film from '../components/Film.astro';
+import Thread from '../components/Thread.astro';
+---
+<Base>
+  <Fragment slot="head">
+    <link rel="preload" as="image" href="/posters/hero-start.avif" type="image/avif" fetchpriority="high" media="(prefers-reduced-motion: no-preference)">
+    <link rel="preload" as="image" href="/posters/hero-end.avif" type="image/avif" fetchpriority="high" media="(prefers-reduced-motion: reduce)">
+  </Fragment>
+  <Thread />
+  <Hero /><Film /><How /><UseCases /><Modes /><Privacy /><Pricing /><Limits /><Faq /><GetApp />
+</Base>
+<script>
+  import '../scripts/thread';
+</script>

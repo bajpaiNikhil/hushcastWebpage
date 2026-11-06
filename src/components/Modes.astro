@@ -1,0 +1,91 @@
+---
+import Tablet from './devices/Tablet.astro';
+import Laptop from './devices/Laptop.astro';
+import Tv from './devices/Tv.astro';
+import SectionHead from './SectionHead.astro';
+import { modes as m } from '../content/copy';
+const tabs = [['live', m.live.name, m.live.tag], ['listen', m.listen.name, m.listen.tag], ['cinema', m.cinema.name, m.cinema.tag]] as const;
+const icons = {
+  live: '<path d="M4 17.5 14.5 7l2.5 2.5L6.5 20H4z"/><path d="m13 8.5 2.5 2.5"/>',
+  listen: '<path d="M4 15v-3a8 8 0 0 1 16 0v3"/><rect x="3" y="14" width="4.5" height="7" rx="1.6"/><rect x="16.5" y="14" width="4.5" height="7" rx="1.6"/>',
+  cinema: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m10 9 5 3-5 3z"/>',
+};
+---
+<section id="modes" class="sec" aria-labelledby="h-modes"
+  data-copy={JSON.stringify({ live: [m.live.name, m.live.text], listen: [m.listen.name, m.listen.text], cinema: [m.cinema.name, m.cinema.text] })}
+  data-cinema={JSON.stringify(m.cinema)}>
+  <div class="wrap">
+    <SectionHead id="h-modes" idx={m.idx} eyebrow={m.eyebrow} h2={m.h2} lede={m.lede} />
+
+    <div class="tabs" role="tablist" aria-label={m.tabsLabel} id="modeTabs">
+      {tabs.map(([k, label, tag], i) => (
+        <button role="tab" id={`tab-${k}`} data-mode={k} aria-selected={i === 0 ? 'true' : 'false'} aria-controls="play" tabindex={i === 0 ? undefined : -1}>
+          <svg viewBox="0 0 24 24" aria-hidden="true" set:html={icons[k]}></svg>
+          <span class="tab-l"><span class="tab-name">{label}</span><span class="tab-tag">{tag}</span></span>
+        </button>
+      ))}
+    </div>
+
+    <div class="play" id="play" data-mode="live" role="tabpanel" aria-labelledby="tab-live">
+      <div class="pad-col">
+        <Tablet class="pad-dev" thread visit={false}>
+          <canvas id="pad" role="img" aria-label={m.padLabel}></canvas>
+          <div class="np" aria-hidden="true">
+            <div class="np-art"><svg viewBox="0 0 24 24"><path d="M9 18V6l11-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/></svg></div>
+            <div class="np-lines"><b>{m.listen.playing}</b><i></i><i></i></div>
+            <div class="np-bar"><i></i></div>
+          </div>
+          <span class="pad-hint" aria-hidden="true">{m.hint}</span>
+        </Tablet>
+        <div class="v-cap">
+          <div class="pens" role="group" aria-label={m.palette}>
+            {m.pens.map(([k, name], i) => <button type="button" class={`pen pen-${k}`} data-pen={k} aria-pressed={i === 0 ? 'true' : 'false'} aria-label={name}></button>)}
+          </div>
+          <p class="cap"><span>{m.yourTablet}</span></p>
+        </div>
+      </div>
+
+      <div class="signal" aria-hidden="true"><i class="sig-line"></i><i class="sig-pkt"></i><span class="sig-txt">{m.signal}</span></div>
+
+      <div class="out">
+        <div class="view v-live">
+          <Laptop><canvas id="vLive" aria-hidden="true"></canvas><span class="rest" aria-hidden="true">{m.mirrorHint}</span></Laptop>
+          <div class="v-cap">
+            <p class="cap"><span>{m.theirScreen}</span> <span class="chip">{m.live.chip}</span></p>
+            <p class="one-viewer">{m.live.cap}</p>
+            <details class="more"><summary>{m.live.moreQ}</summary><p>{m.live.moreA}</p></details>
+          </div>
+        </div>
+        <div class="view v-listen">
+          <div class="eq" role="img" aria-label={m.listen.eq}>{Array.from({ length: 24 }, () => <i></i>)}</div>
+          <div class="v-cap">
+          <p class="listen-label">{m.listen.listeners}</p>
+          <ul class="seats" aria-label={m.listen.label}>
+            {Array.from({ length: 10 }, (_, i) => (
+              <li class={i < 2 ? 'on' : undefined}>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 15v-3a8 8 0 0 1 16 0v3" fill="none" stroke="currentColor" stroke-width="1.8"/><rect x="3" y="14" width="4.5" height="7" rx="1.6" fill="currentColor"/><rect x="16.5" y="14" width="4.5" height="7" rx="1.6" fill="currentColor"/></svg>
+              </li>
+            ))}
+          </ul>
+          <p class="cap"><span class="chip chip-violet">{m.listen.free}</span> <span>{m.listen.unlock}</span></p>
+          <p class="muted listen-note">{m.listen.note}</p>
+          </div>
+        </div>
+        <div class="view v-cinema">
+          <Tv>
+            <canvas id="vCinema" aria-hidden="true"></canvas>
+            <div class="buffer" id="buffer"><span class="buffer-ring" aria-hidden="true"></span><span id="countdown">{m.cinema.idle}</span></div>
+          </Tv>
+          <div class="v-cap"><p class="cap"><span>{m.theirScreen}</span> <span class="chip chip-amber">{m.cinema.chip}</span></p></div>
+        </div>
+      </div>
+
+      <div class="mode-copy" aria-live="polite">
+        <h3 id="modeTitle">{m.live.name}</h3>
+        <p id="modeText" class="muted">{m.live.text}</p>
+        <div class="play-actions"><button class="ghost" id="demoBtn" type="button">{m.demo}</button><button class="ghost" id="clearBtn" type="button">{m.clear}</button></div>
+        <p class="fine mt-12">{m.illustration}</p>
+      </div>
+    </div>
+  </div>
+</section>

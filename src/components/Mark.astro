@@ -1,0 +1,32 @@
+---
+// The HushCast launcher icon (H-Stroke), converted from the app's vector drawable
+// (HushCast-video/assets/icons/hushcast-icon-idle-red.svg). Geometry is unchanged.
+// The status dot is its own element (.mk-dot) so CSS can turn it red (idle) or green (casting).
+interface Props { uid: string; class?: string; label?: string }
+const { uid, class: cls = '', label } = Astro.props;
+const bg = `mkbg-${uid}`, g = `mkg-${uid}`, tile = `mkt-${uid}`;
+---
+<svg class:list={['mark', cls]} viewBox="0 0 108 108" role={label ? 'img' : undefined} aria-label={label} aria-hidden={label ? undefined : 'true'} focusable="false">
+  <defs>
+    <linearGradient id={bg} x1="54" y1="0" x2="54" y2="108" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#1C1C21"/><stop offset="1" stop-color="#0B0B0D"/></linearGradient>
+    <clipPath id={tile}><rect width="108" height="108" rx="26"/></clipPath>
+    <linearGradient id={g} gradientUnits="userSpaceOnUse" x1="22" y1="22" x2="88" y2="88"><stop offset="0" stop-color="#F5F5F7"/><stop offset="1" stop-color="#F5F5F7" stop-opacity="0.6"/></linearGradient>
+  </defs>
+  <g clip-path={`url(#${tile})`}>
+    <rect width="108" height="108" fill={`url(#${bg})`}/>
+    <g transform="translate(-2,4) translate(56,50) scale(0.86) translate(-56,-50)" fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M34,36 L34,80" stroke={`url(#${g})`} stroke-width="8"/>
+      <path d="M60,46 L60,80" stroke={`url(#${g})`} stroke-width="8"/>
+      <path d="M34,60 C41,51 47,68 54,59 C57,55 58,58 60,59" stroke={`url(#${g})`} stroke-width="6"/>
+      <g stroke="#F5F5F7" stroke-opacity="0.22" stroke-width="1.8">
+        <path d="M60,31 C66,26 69,24 72,22"/><path d="M61,33 C68,33 74,34 79,35"/><path d="M60,36 C67,41 72,45 76,48"/>
+      </g>
+      <g fill="#0F0F12" stroke="#F5F5F7" stroke-width="2.4">
+        <path d="M70.6,15 H77.4 A2.6,2.6 0 0 1 80,17.6 V20.9 A2.6,2.6 0 0 1 77.4,23.5 H70.6 A2.6,2.6 0 0 1 68,20.9 V17.6 A2.6,2.6 0 0 1 70.6,15 Z"/>
+        <path d="M81.6,30 H88.4 A2.6,2.6 0 0 1 91,32.6 V35.9 A2.6,2.6 0 0 1 88.4,38.5 H81.6 A2.6,2.6 0 0 1 79,35.9 V32.6 A2.6,2.6 0 0 1 81.6,30 Z"/>
+        <path d="M78.6,46 H85.4 A2.6,2.6 0 0 1 88,48.6 V51.9 A2.6,2.6 0 0 1 85.4,54.5 H78.6 A2.6,2.6 0 0 1 76,51.9 V48.6 A2.6,2.6 0 0 1 78.6,46 Z"/>
+      </g>
+      <circle class="mk-dot" cx="60" cy="32" r="5" stroke="none"/>
+    </g>
+  </g>
+</svg>

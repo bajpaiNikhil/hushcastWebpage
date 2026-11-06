@@ -1,0 +1,46 @@
+---
+// The film section, right after the hero. preload="none": the video body is only requested when the
+// visitor presses play. Native controls, inline on phones, English captions available (not on by
+// default: the film already shows its text on screen). No autoplay, no embed, no CDN.
+import { film } from '../content/film';
+import { site } from '../content/copy';
+---
+<section id="film" class="sec film" aria-labelledby="h-film">
+  <div class="wrap">
+    <div class="film-intro rv">
+      <header data-thread="left">
+        <p class="eyebrow"><span class="film-tag">{film.duration}</span> {film.eyebrow}</p>
+        <h2 id="h-film">{film.heading[0]}<br>{film.heading[1]}</h2>
+      </header>
+      <div>
+        <p class="lede">{film.lede}</p>
+        {site.playUrl && <p class="film-avail"><a href={site.playUrl} rel="noopener">{site.playCta}</a></p>}
+      </div>
+    </div>
+
+    <figure class="film-fig">
+      <div class="film-frame">
+        <div class="film-meta"><span>{film.modes}</span><span>{film.duration}</span></div>
+        <div class="film-box">
+          <video id="filmVideo" controls playsinline preload="none" poster={film.poster} width="1920" height="1080"
+            aria-label={`${film.title} (${film.durationLabel})`} aria-describedby="film-description">
+            <source src={film.src} type="video/mp4" />
+            <track kind="captions" src={film.captions} srclang="en" label={film.captionLanguage} />
+            <a href={film.src}>{film.fallback}</a>
+          </video>
+          <button class="film-play" id="filmPlay" type="button" aria-label={`${film.play}, ${film.durationLabel}`} hidden>
+            <span class="film-play-ring"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z" fill="currentColor"/></svg></span>
+            <span class="film-play-label">{film.play} <span class="dur">{film.duration}</span></span>
+          </button>
+        </div>
+      </div>
+      <figcaption id="film-description">
+        <span class="film-label">{film.descriptionLabel}</span>
+        <div>
+          <p>{film.description}</p>
+          <p class="fine">{film.captionNote} {film.credit}</p>
+        </div>
+      </figcaption>
+    </figure>
+  </div>
+</section>

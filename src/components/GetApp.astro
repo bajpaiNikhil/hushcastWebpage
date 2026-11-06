@@ -1,0 +1,43 @@
+---
+// The availability section (#get-app): where every "Availability" / "Get HushCast" link lands.
+// Until site.playUrl is set this is release information only: no download, no sign-up, no fake button.
+import Mark from './Mark.astro';
+import { getApp as g, site } from '../content/copy';
+import { film } from '../content/film';
+---
+<section id="get-app" class="sec getapp" aria-labelledby="h-get" data-idle={g.idle} data-casting={g.casting}>
+  <div class="wrap">
+    <div class="get-card rv">
+      <div class="get-brand">
+        <!-- the end of the road: in the gutter, level with the icon. He stops here, waves, and his light
+             travels to the icon (thread.ts lightIcon) -->
+        <i class="anc-end" data-thread></i>
+        <button class="icon" id="dot" type="button" aria-pressed="false" aria-label={g.iconLabel}>
+          <Mark uid="end" class="icon-mark" />
+          <span class="icon-3d" aria-hidden="true"></span>
+        </button>
+        <p class="dotcap" id="dotCap" aria-live="polite">{g.idle}</p>
+        <p class="fine">{g.tap}</p>
+      </div>
+      <div class="get-info">
+        <p class="eyebrow"><span class="idx">{g.idx}</span> {g.eyebrow}</p>
+        <h2 id="h-get">{g.h2[0]}<br><span class="h2-key">{g.h2[1]}</span></h2>
+        <p class="get-status">
+          <strong>{g.name}</strong>
+          {site.playUrl ? null : <span class="status-pill">{g.status}</span>}
+        </p>
+        {site.playUrl ? null : <p class="fine">{g.statusNote}</p>}
+        <ul class="facts">{g.facts.map((f) => <li>{f}</li>)}</ul>
+        <p class="get-benefit">{g.benefit}</p>
+        <div class="cta-row">
+          {site.playUrl && <a class="btn" href={site.playUrl} rel="noopener">{site.playCta}</a>}
+          <a class:list={[site.playUrl ? 'ghost' : 'btn', 'btn-play']} href="#film">
+            <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 3.5v9l7.5-4.5z" fill="currentColor"/></svg>
+            {g.watch}<span class="dur">{film.duration}</span>
+          </a>
+          <a class="ghost" href="#modes">{g.demo}</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

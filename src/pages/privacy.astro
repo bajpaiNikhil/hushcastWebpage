@@ -1,0 +1,8 @@
+---
+import Base from '../layouts/Base.astro';
+import Doc from '../components/Doc.astro';
+import { privacyDoc } from '../content/legal';
+---
+<Base title={privacyDoc.title} description={privacyDoc.description} path="/privacy/">
+  <Doc doc={privacyDoc} />
+</Base>

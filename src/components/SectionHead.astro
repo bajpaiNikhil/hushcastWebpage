@@ -1,0 +1,11 @@
+---
+interface Props { idx: string; eyebrow?: string; h2: string | string[]; lede?: string; id: string; reveal?: boolean }
+const { idx, eyebrow, h2, lede, id, reveal = true } = Astro.props;
+const lines = Array.isArray(h2) ? h2 : [h2];
+---
+<header class:list={[{ rv: reveal }]} data-thread="left">
+  <p class="eyebrow"><span class="idx">{idx}</span> {eyebrow}</p>
+  <h2 id={id}>{lines.map((l, i) => <>{i > 0 && <br />}{l}</>)}</h2>
+  {lede && <p class="lede">{lede}</p>}
+  <slot />
+</header>

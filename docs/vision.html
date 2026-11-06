@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>HushCast — Your Android screen in a browser, on your WiFi</title>
+<meta name="description" content="HushCast shows your Android screen and sound in a browser on the same WiFi. No account, no cloud, no upload, no ads.">
+<meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="dark">
+<script>document.documentElement.classList.add('js')</script>
+<style>
+:root{
+  --bg:#0B0B0D;--s1:#161618;--s2:#1E1E21;--hair:rgba(255,255,255,.08);--hair2:rgba(255,255,255,.14);
+  --t1:#F5F5F7;--t2:#8E8E93;--t3:#636366;--red:#E05555;--green:#34C759;
+  --ease:cubic-bezier(.22,.61,.36,1);--wrap:1120px;
+}
+*{box-sizing:border-box}
+html{background:var(--bg);color:var(--t1);-webkit-text-size-adjust:100%;overflow-x:clip;scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{margin:0;position:relative;overflow-x:clip;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:17px;line-height:1.55;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--t1);outline-offset:3px;border-radius:8px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.wrap{max-width:var(--wrap);margin:0 auto;padding:0 32px;position:relative}
+section,header.nav,footer{position:relative;z-index:2}
+h1,h2,h3{font-weight:600;margin:0}
+h1{font-size:clamp(46px,7vw,88px);line-height:1.0;letter-spacing:-.04em}
+h2{font-size:clamp(34px,4.6vw,56px);line-height:1.05;letter-spacing:-.032em}
+h3{font-size:clamp(19px,1.8vw,24px);line-height:1.25;letter-spacing:-.015em}
+p{margin:0}
+.lede{font-size:clamp(18px,1.55vw,21px);color:var(--t2);max-width:34ch;margin-top:20px}
+.eyebrow{font-size:14px;color:var(--t2);display:flex;gap:12px;align-items:center;margin-bottom:18px}
+.idx{font-variant-numeric:tabular-nums;color:var(--t3)}
+.fine{font-size:13px;color:var(--t3)}
+.muted{color:var(--t2)}
+.sec{padding:160px 0 40px}
+
+/* ---------- thread ---------- */
+#thread{position:absolute;top:0;left:0;z-index:1;pointer-events:none;overflow:visible}
+#threadGhost{fill:none;stroke:rgba(245,245,247,.055);stroke-width:1}
+#threadPath{fill:none;stroke:rgba(245,245,247,.55);stroke-width:1.25;stroke-linecap:round}
+#threadNodes circle{fill:var(--bg);stroke:rgba(245,245,247,.3);stroke-width:1.25;transition:fill .5s,stroke .5s}
+#threadNodes circle.on{fill:var(--t1);stroke:var(--t1)}
+#threadTip{fill:var(--t1);opacity:0}
+#threadHalo{fill:rgba(245,245,247,.13);opacity:0}
+#packet{fill:var(--t1);opacity:0}
+
+/* ---------- nav ---------- */
+.nav{position:sticky;top:0;z-index:20;background:rgba(11,11,13,.74);-webkit-backdrop-filter:saturate(1.4) blur(18px);backdrop-filter:saturate(1.4) blur(18px);border-bottom:1px solid var(--hair)}
+.nav-in{display:flex;align-items:center;justify-content:space-between;height:60px;gap:16px}
+.logo{display:inline-flex;align-items:center;gap:10px;font-weight:600;text-decoration:none;font-size:17px;letter-spacing:-.01em;min-height:44px}
+.logo-dot{width:10px;height:10px;border-radius:50%;background:var(--red);transition:background .6s var(--ease)}
+body.live .logo-dot{background:var(--green)}
+.nav nav{display:flex;gap:4px}
+.nav nav a{color:var(--t2);text-decoration:none;font-size:14px;padding:12px 12px;border-radius:999px;transition:color .3s}
+.nav nav a:hover{color:var(--t1)}
+.soon{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 18px;border-radius:999px;border:1px solid var(--hair2);color:var(--t2);font-size:14px;white-space:nowrap}
+.soon svg{width:14px;height:14px}
+
+/* ---------- buttons ---------- */
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 26px;border-radius:999px;background:var(--t1);color:var(--bg);font-weight:600;text-decoration:none;font-size:16px;transition:transform .3s var(--ease)}
+.btn:hover{transform:translateY(-1px)}
+.ghost{min-height:44px;padding:0 18px;border-radius:999px;border:1px solid var(--hair2);background:transparent;color:var(--t1);font-size:14px;cursor:pointer;transition:border-color .3s}
+.ghost:hover{border-color:rgba(255,255,255,.3)}
+.ghost:disabled{opacity:.35;cursor:default}
+.chip{display:inline-flex;align-items:center;padding:2px 10px;border-radius:999px;border:1px solid var(--hair2);font-size:12px;color:var(--t1);white-space:nowrap}
+.cta-row{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-top:36px}
+
+/* ---------- devices ---------- */
+.tablet{position:relative;aspect-ratio:255/163;border-radius:6.5%/10.2%;padding:2.6%;
+  background:linear-gradient(155deg,#3b3b40 0%,#1d1d20 38%,#141416 100%);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.10),inset 0 1px 0 rgba(255,255,255,.2),0 40px 70px -24px rgba(0,0,0,.85)}
+.screen{position:relative;width:100%;height:100%;overflow:hidden;background:#060607;border-radius:4.2%/6.6%;box-shadow:inset 0 0 0 1px rgba(255,255,255,.04)}
+.laptop .lid{aspect-ratio:16/10.6;border-radius:5% 5% 1% 1%/7.5% 7.5% 1.5% 1.5%;padding:2.4% 2.4% 3.2%;
+  background:linear-gradient(155deg,#3b3b40 0%,#1d1d20 40%,#141416 100%);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.10),inset 0 1px 0 rgba(255,255,255,.18)}
+.laptop .lid .screen{border-radius:2%/3%}
+.laptop .base{height:0;padding-bottom:3.6%;width:114%;margin-left:-7%;border-radius:0 0 40% 40%/0 0 100% 100%;
+  background:linear-gradient(#45454b,#1a1a1d);box-shadow:0 30px 50px -20px rgba(0,0,0,.8)}
+.lscreen{display:flex;flex-direction:column}
+.chrome{flex:0 0 auto;height:11%;min-height:10px;display:flex;align-items:center;gap:3%;padding:0 3.5%;background:#111113;border-bottom:1px solid var(--hair)}
+.chrome i{width:.55em;height:.55em;border-radius:50%;background:#3a3a3e;flex:0 0 auto}
+.chrome .url{flex:1;height:58%;border-radius:999px;background:#1E1E21;color:var(--t2);font-size:.75em;display:flex;align-items:center;justify-content:center;white-space:nowrap;overflow:hidden;margin-left:2%}
+.vp{position:relative;flex:1;min-height:0}
+.vp canvas,.vp svg,.screen > canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.phone{aspect-ratio:9/19.5;border-radius:16%/7.4%;padding:5%;background:linear-gradient(155deg,#3b3b40,#18181b 50%);box-shadow:inset 0 0 0 1px rgba(255,255,255,.1)}
+.phone .screen{border-radius:12%/5.6%;display:grid;place-items:center;text-align:center}
+.tv{aspect-ratio:16/9;border-radius:1.6%/2.8%;padding:1.1%;background:#141416;box-shadow:inset 0 0 0 1px rgba(255,255,255,.1),0 40px 70px -30px rgba(0,0,0,.9)}
+.tv .screen{border-radius:.8%/1.4%}
+.tv-stand{width:22%;height:10px;margin:0 auto;border-radius:0 0 6px 6px;background:linear-gradient(#2a2a2e,#151517)}
+
+/* hero slide drawing */
+.slide{position:absolute;inset:0;width:100%;height:100%}
+.ink{fill:none;stroke:var(--t1);stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1;stroke-dashoffset:1}
+.ink.done,html:not(.js) .ink{stroke-dashoffset:0}
+
+/* ---------- hero ---------- */
+.hero{min-height:min(100svh,960px);display:flex;align-items:center;padding:72px 0 64px}
+.hero-grid{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:24px;align-items:center;width:100%}
+.hero-copy{position:relative;z-index:3}
+.stage{position:relative;aspect-ratio:1.28;perspective:1700px;opacity:0;transition:opacity 1.4s var(--ease)}
+html:not(.js) .stage,.s1 .stage{opacity:1}
+.rig{position:absolute;inset:0;transform-style:preserve-3d;transform:rotateX(9deg) rotateY(-16deg);transition:transform 1s var(--ease);font-size:clamp(7px,.82vw,11px)}
+.rig .tablet{position:absolute;left:0;top:30%;width:52%;transform:translateZ(70px)}
+.rig .laptop{position:absolute;right:0;top:20%;width:34%;transform:translateZ(-90px)}
+.plinth{position:absolute;left:-4%;right:-4%;bottom:6%;height:26%;border-radius:50%;
+  background:radial-gradient(closest-side,rgba(255,255,255,.07),rgba(255,255,255,0));
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.035);transform:rotateX(74deg) translateZ(-40px)}
+.anc{position:absolute;width:2px;height:2px;pointer-events:none}
+.badge{position:absolute;top:7%;right:5%;display:flex;align-items:center;gap:.55em;padding:.4em .75em .4em .6em;border-radius:999px;background:rgba(30,30,33,.94);font-size:1em;color:var(--t1);box-shadow:inset 0 0 0 1px var(--hair2);white-space:nowrap;z-index:2}
+.badge .d{width:.75em;height:.75em;border-radius:50%;background:var(--red);transition:background .5s var(--ease)}
+.badge .stop{color:var(--t2);margin-left:.3em;padding-left:.6em;border-left:1px solid var(--hair2)}
+.s2 .badge .d{animation:pulse .9s var(--ease) 1}
+.s3 .badge .d{background:var(--green)}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(224,85,85,.7)}100%{box-shadow:0 0 0 1.2em rgba(224,85,85,0)}}
+.lscreen .wait{position:absolute;inset:0;display:grid;place-items:center;color:var(--t3);font-size:.9em;transition:opacity .5s}
+.lscreen .mirror{position:absolute;inset:0;opacity:0;transition:opacity .6s var(--ease)}
+.s4 .lscreen .wait{opacity:0}
+.s4 .lscreen .mirror{opacity:1}
+.s4 .rig .ink{animation:ink 1.7s var(--ease) forwards}
+.s4 .rig .ink.k2{animation-duration:.45s;animation-delay:1.6s}
+.s4 .rig .lscreen .ink{animation-delay:.2s}
+.s4 .rig .lscreen .ink.k2{animation-delay:1.8s}
+@keyframes ink{to{stroke-dashoffset:0}}
+
+/* ---------- how ---------- */
+.steps{list-style:none;padding:0;margin:72px 0 0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:48px}
+.step:nth-child(2){margin-top:88px}
+.step:nth-child(3){margin-top:176px}
+.step .dev{font-size:clamp(7px,.72vw,10px);margin-bottom:28px}
+.step h3{display:flex;gap:12px;align-items:baseline}
+.step h3 .idx{font-size:14px;font-weight:500}
+.step p{color:var(--t2);margin-top:8px;max-width:30ch}
+.ui{position:absolute;inset:0;padding:7% 8%;display:flex;flex-direction:column;gap:7%}
+.ui-title{font-weight:600;font-size:1.35em;display:flex;align-items:center;gap:.5em}
+.ui-title i{width:.6em;height:.6em;border-radius:50%;background:var(--red)}
+.ui-btn{align-self:flex-start;background:var(--t1);color:var(--bg);border-radius:999px;padding:.55em 1.3em;font-weight:600}
+.ui-chips{display:flex;gap:.5em}
+.ui-chips span{border:1px solid var(--hair2);border-radius:999px;padding:.2em .8em;font-size:.85em;color:var(--t2)}
+.sheet{position:absolute;left:50%;top:56%;transform:translate(-50%,-50%);width:72%;background:#232327;border-radius:1em;padding:1em 1.2em;box-shadow:0 14px 40px rgba(0,0,0,.65),inset 0 0 0 1px var(--hair2);font-size:.95em;line-height:1.35}
+.sheet-acts{display:flex;justify-content:flex-end;gap:1.6em;margin-top:.9em;font-weight:600}
+.sheet-acts span:first-child{color:var(--t2)}
+.qrwrap{position:absolute;inset:0;display:flex;align-items:center;gap:8%;padding:0 9%}
+.qr{width:36%;flex:0 0 36%;height:auto;border-radius:.5em}
+.qrtext{line-height:1.45}
+.qrtext b{display:block;font-size:1.25em;font-weight:600}
+.qrtext span{color:var(--t2);display:block}
+
+/* ---------- modes ---------- */
+.tabs{display:inline-flex;gap:4px;padding:4px;border-radius:999px;background:var(--s1);box-shadow:inset 0 0 0 1px var(--hair);margin-top:40px}
+[role=tab]{min-height:44px;padding:0 24px;border-radius:999px;border:0;background:transparent;color:var(--t2);font-size:15px;font-weight:500;cursor:pointer;transition:background .4s var(--ease),color .4s}
+[role=tab][aria-selected=true]{background:var(--s2);color:var(--t1);box-shadow:inset 0 0 0 1px var(--hair2)}
+.play{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:56px;align-items:center;margin-top:48px;font-size:12px}
+.pad-col{position:relative}
+.pad-dev{position:relative}
+#pad{touch-action:none;cursor:crosshair}
+.pad-hint{position:absolute;left:50%;bottom:7%;transform:translateX(-50%);color:var(--t3);font-size:13px;pointer-events:none;transition:opacity .4s}
+.np{position:absolute;inset:0;display:grid;grid-template-columns:auto 1fr;grid-template-rows:1fr auto;gap:6% 6%;padding:10% 9%;background:#0a0a0c;opacity:0;transition:opacity .6s var(--ease);pointer-events:none}
+.np-art{width:9em;aspect-ratio:1;border-radius:1em;background:linear-gradient(145deg,#2a2a2f,#18181b);box-shadow:inset 0 0 0 1px var(--hair2)}
+.np-lines{align-self:center;display:flex;flex-direction:column;gap:.8em}
+.np-lines i{display:block;height:.9em;border-radius:1em;background:#2a2a2f;width:80%}
+.np-lines i+i{width:50%;background:#1f1f23}
+.np-bar{grid-column:1/-1;height:4px;border-radius:4px;background:#232327;overflow:hidden}
+.np-bar i{display:block;height:100%;width:30%;background:var(--t2)}
+.ring{position:absolute;left:50%;top:50%;width:100%;aspect-ratio:255/163;border:1px solid rgba(245,245,247,.45);border-radius:6.5%/10.2%;transform:translate(-50%,-50%);opacity:0;pointer-events:none}
+.play[data-mode=listen] .np{opacity:1}
+.play[data-mode=listen] .pad-hint{opacity:0}
+.play[data-mode=listen].inview .ring{animation:ring 2.7s var(--ease) infinite}
+.play[data-mode=listen].inview .ring:nth-of-type(2){animation-delay:.9s}
+.play[data-mode=listen].inview .ring:nth-of-type(3){animation-delay:1.8s}
+.play[data-mode=listen].inview .np-bar i{animation:bar 12s linear infinite}
+@keyframes ring{0%{opacity:.55;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-50%) scale(1.32)}}
+@keyframes bar{from{width:8%}to{width:100%}}
+.cap{margin-top:16px;color:var(--t2);font-size:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.out{display:grid}
+.view{grid-area:1/1;align-self:center;opacity:0;visibility:hidden;transform:translateY(10px);transition:opacity .6s var(--ease),transform .6s var(--ease),visibility 0s linear .6s}
+.play[data-mode=live] .v-live,.play[data-mode=listen] .v-listen,.play[data-mode=cinema] .v-cinema{opacity:1;visibility:visible;transform:none;transition-delay:0s}
+.live-row{display:flex;align-items:flex-end;gap:6%}
+.live-row .laptop{flex:0 0 76%}
+.live-row .phone{flex:0 0 17%;opacity:.75}
+.phone .screen p{font-size:11px;color:var(--t2);padding:0 8%;line-height:1.3}
+.phones{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(5,1fr);gap:18px;max-width:420px}
+.phones li{aspect-ratio:1;border-radius:22px;background:var(--s1);box-shadow:inset 0 0 0 1px var(--hair);display:grid;place-items:center;color:var(--t3)}
+.phones li.on{color:var(--t1);box-shadow:inset 0 0 0 1px var(--hair2)}
+.phones svg{width:46%;height:46%}
+.play[data-mode=listen].inview .phones li.on svg{animation:nod 2.7s var(--ease) infinite}
+.play[data-mode=listen].inview .phones li.on+li.on svg{animation-delay:.12s}
+@keyframes nod{0%,100%{transform:none}12%{transform:translateY(-3px)}}
+.mode-copy{margin-top:48px;max-width:640px;min-height:150px}
+.mode-copy p{margin-top:10px}
+.play-actions{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap}
+
+/* ---------- privacy ---------- */
+.house-wrap{margin-top:56px;position:relative}
+.house{width:100%;height:auto;display:block;overflow:visible}
+.h-outline{fill:none;stroke:rgba(245,245,247,.38);stroke-width:1.5;stroke-linejoin:round}
+.h-floor{stroke:rgba(245,245,247,.12);stroke-width:1}
+.dev{fill:#161618;stroke:rgba(245,245,247,.28);stroke-width:1.5}
+.dev-in{fill:#0a0a0c}
+.lbl{fill:var(--t2);font-size:15px;font-family:inherit}
+.lbl.dim{fill:var(--t3)}
+.net-line{fill:none;stroke:var(--t3);stroke-width:1.5;stroke-dasharray:4 7;transition:opacity .9s var(--ease),stroke-dashoffset .9s var(--ease)}
+.cloud path{fill:none;stroke:var(--t3);stroke-width:1.5;transition:opacity .9s}
+.unplugged .net-line{opacity:0}
+.unplugged .cloud path{opacity:.4}
+.switch-row{display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px;margin-top:28px}
+.switch{display:inline-flex;align-items:center;gap:14px;min-height:44px;padding:0 6px;border:0;background:none;cursor:pointer;font-size:16px}
+.track{position:relative;width:52px;height:30px;border-radius:999px;background:var(--s2);box-shadow:inset 0 0 0 1px var(--hair2);transition:background .4s}
+.knob{position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:var(--t1);transition:transform .4s var(--ease)}
+.switch[aria-checked=true] .knob{transform:translateX(22px)}
+#netState{color:var(--t2);font-size:15px}
+.truths{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;background:var(--hair);border-radius:22px;overflow:hidden;margin-top:64px;box-shadow:0 0 0 1px var(--hair)}
+.truth{background:var(--bg);padding:30px 30px 34px}
+.truth h3{font-size:19px}
+.truth p{color:var(--t2);margin-top:10px;font-size:16px}
+.truth .tag{font-size:13px;color:var(--t3);margin-bottom:10px}
+
+/* ---------- pricing ---------- */
+.plans{width:100%;border-collapse:collapse;margin-top:56px;font-size:16px}
+.plans th,.plans td{padding:20px 18px;border-bottom:1px solid var(--hair);text-align:left;vertical-align:top}
+.plans thead th{font-size:14px;color:var(--t2);font-weight:500}
+.plans tbody th{font-weight:600;width:22%}
+.plans td{color:var(--t2)}
+.plans .u{background:rgba(255,255,255,.025);color:var(--t1)}
+.plans thead .u{border-radius:14px 14px 0 0;color:var(--t1)}
+.prices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:40px}
+.price{background:var(--s1);border-radius:22px;padding:26px 26px 24px;box-shadow:inset 0 0 0 1px var(--hair)}
+.amt{font-size:clamp(30px,3.4vw,44px);font-weight:600;letter-spacing:-.03em;line-height:1.1}
+.rg{color:var(--t2);font-size:14px;margin-top:6px}
+.pnote{margin-top:22px;max-width:640px}
+
+/* ---------- limits + faq ---------- */
+.limits{list-style:none;margin:56px 0 0;padding:0;max-width:880px}
+.limits li{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:24px;padding:24px 0;border-top:1px solid var(--hair)}
+.limits li:last-child{border-bottom:1px solid var(--hair)}
+.limits b{font-weight:600}
+.limits span{color:var(--t2)}
+.faq{margin-top:48px;max-width:880px}
+.faq details{border-top:1px solid var(--hair)}
+.faq details:last-child{border-bottom:1px solid var(--hair)}
+.faq summary{min-height:68px;display:flex;align-items:center;justify-content:space-between;gap:24px;cursor:pointer;font-size:19px;font-weight:500;list-style:none;padding:12px 0}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:"";flex:0 0 14px;height:14px;background:linear-gradient(var(--t2),var(--t2)) center/14px 1.5px no-repeat,linear-gradient(var(--t2),var(--t2)) center/1.5px 14px no-repeat;transition:transform .4s var(--ease)}
+.faq details[open] summary::after{transform:rotate(45deg)}
+.faq .ans{padding:0 0 26px;color:var(--t2);max-width:640px}
+
+/* ---------- end ---------- */
+.end{text-align:center;padding-bottom:120px}
+.end .eyebrow{justify-content:center}
+.end .lede{margin-left:auto;margin-right:auto;max-width:40ch}
+.icon{position:relative;width:200px;height:200px;margin:72px auto 0;border-radius:46px;border:0;padding:0;cursor:pointer;
+  background:linear-gradient(160deg,#1E1E21,#121214);box-shadow:inset 0 0 0 1px var(--hair2),0 40px 80px -30px rgba(0,0,0,.9);display:block}
+.icon .ph{position:absolute;inset:26% 30% 22% 22%;border:1px dashed rgba(245,245,247,.2);border-radius:10px;display:grid;place-items:center;color:var(--t3);font-size:12px;line-height:1.3}
+.icon .dot{position:absolute;top:16%;right:17%;width:34px;height:34px;border-radius:50%;background:var(--red);box-shadow:0 0 0 0 rgba(224,85,85,.0),0 0 40px rgba(224,85,85,.25);transition:background .6s var(--ease),box-shadow .6s var(--ease)}
+.icon[aria-pressed=true] .dot{background:var(--green);box-shadow:0 0 50px rgba(52,199,89,.35)}
+.icon:hover .dot{transform:scale(1.04)}
+.dotcap{margin-top:22px;font-size:15px;font-weight:500;min-height:24px}
+.end .cta-row{justify-content:center}
+
+/* ---------- footer ---------- */
+footer{border-top:1px solid var(--hair);padding:40px 0 120px}
+.foot-in{display:flex;justify-content:space-between;gap:32px;flex-wrap:wrap;align-items:flex-start}
+.foot-in nav{display:flex;gap:6px;flex-wrap:wrap}
+.foot-in nav a{color:var(--t2);text-decoration:none;font-size:14px;padding:12px 10px}
+.proof{font-size:14px;color:var(--t2);max-width:36ch}
+.proof b{color:var(--t1);font-variant-numeric:tabular-nums}
+
+/* ---------- director's notes ---------- */
+.note{display:none;margin:28px 0 0;max-width:600px;padding:16px 18px;border:1px dashed rgba(245,245,247,.22);border-radius:14px;font-size:14px;line-height:1.55;color:var(--t2);text-align:left;background:rgba(11,11,13,.85)}
+.note b{color:var(--t1);font-weight:600}
+.show-notes .note{display:block}
+.end .note{margin-left:auto;margin-right:auto}
+.notes-btn{position:fixed;right:20px;bottom:20px;z-index:40;min-height:44px;padding:0 18px;border-radius:999px;border:1px dashed rgba(245,245,247,.3);background:rgba(22,22,24,.92);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);color:var(--t1);font-size:14px;cursor:pointer}
+.notes-btn[aria-pressed=true]{border-style:solid;border-color:var(--t1)}
+.toast{position:fixed;left:50%;bottom:84px;transform:translate(-50%,20px);z-index:50;max-width:min(560px,calc(100vw - 32px));padding:14px 20px;border-radius:16px;background:var(--s2);box-shadow:inset 0 0 0 1px var(--hair2),0 20px 40px rgba(0,0,0,.5);font-size:15px;opacity:0;pointer-events:none;transition:opacity .5s var(--ease),transform .5s var(--ease)}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.mbar{display:none}
+
+/* reveal: opacity only so layout never shifts */
+.js .rv{opacity:0;transition:opacity 1s var(--ease)}
+.js .rv.in{opacity:1}
+
+@media (prefers-reduced-motion:reduce){
+  .js .rv{opacity:1;transition:none}
+  .stage{transition:none}
+  .rig{transition:none}
+  .ink{stroke-dashoffset:0!important;animation:none!important}
+  .ring,.np-bar i,.phones svg{animation:none!important}
+}
+
+/* ---------- tablet + mobile ---------- */
+@media (max-width:980px){
+  .hero-grid{grid-template-columns:1fr}
+  .hero{padding-top:56px}
+  .stage{max-width:720px;width:100%;margin:8px auto 0}
+  .play{grid-template-columns:1fr;gap:40px}
+}
+@media (max-width:760px){
+  body{font-size:16px}
+  .wrap{padding:0 20px 0 38px}
+  .nav .wrap{padding:0 20px}
+  .nav nav,.nav .soon,.hero-copy .soon{display:none}
+  .sec{padding:112px 0 24px}
+  .steps{grid-template-columns:1fr;gap:56px}
+  .step:nth-child(2),.step:nth-child(3){margin-top:0}
+  .step .dev{font-size:9px;max-width:420px}
+  .truths{grid-template-columns:1fr}
+  .prices{grid-template-columns:1fr}
+  .plans{font-size:14px}
+  .plans th,.plans td{padding:16px 10px}
+  .limits li{grid-template-columns:1fr;gap:6px}
+  .faq summary{font-size:17px}
+  .mbar{display:flex;position:fixed;left:0;right:0;bottom:calc(14px + env(safe-area-inset-bottom));z-index:30;justify-content:center;pointer-events:none}
+  .mbar .soon{pointer-events:auto;background:rgba(22,22,24,.94);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);color:var(--t1)}
+  .notes-btn{bottom:calc(76px + env(safe-area-inset-bottom));right:14px;font-size:13px}
+  .toast{bottom:140px}
+  .phones{gap:10px}
+  .phones li{border-radius:16px}
+}
+</style>
+</head>
+<body>
+
+<svg id="thread" aria-hidden="true" focusable="false">
+  <path id="threadGhost"/>
+  <path id="threadPath"/>
+  <g id="threadNodes"></g>
+  <circle id="packet" r="3.5"/>
+  <circle id="threadHalo" r="10"/>
+  <circle id="threadTip" r="3"/>
+</svg>
+
+<header class="nav">
+  <div class="wrap nav-in">
+    <a class="logo" href="#top" aria-label="HushCast, back to top"><span class="logo-dot" aria-hidden="true"></span>HushCast</a>
+    <nav aria-label="Sections">
+      <a href="#how">How it works</a><a href="#modes">Modes</a><a href="#privacy">Privacy</a><a href="#pricing">Pricing</a>
+    </nav>
+    <span class="soon">Coming soon to Google Play</span>
+  </div>
+</header>
+
+<main>
+<!-- 00 HERO ------------------------------------------------------------ -->
+<section id="top" class="hero" aria-labelledby="h-hero">
+  <div class="wrap hero-grid">
+    <div class="hero-copy">
+      <p class="eyebrow">HushCast for Android</p>
+      <h1 id="h-hero">Cast without<br>the cloud.</h1>
+      <p class="lede">Your phone or tablet's screen and sound, in a browser on the same WiFi. No account. No cloud. No ads.</p>
+      <div class="cta-row">
+        <a class="btn" href="#how">See how it works</a>
+        <span class="soon">Coming soon to Google Play</span>
+      </div>
+      <aside class="note"><b>Scene A goes here.</b> This CSS stand-in shows the composition: tablet front-left, laptop smaller and further back, one clear gap the line can cross. The headline is readable at frame zero, so no dark intro. The one motion beat: the badge dot pulses red, turns green, the line reaches the laptop, and the stroke lands on the laptop 0.2 s after the tablet. Scroll only drifts the camera a few degrees. The poster is the final frame and is the LCP image.</aside>
+    </div>
+
+    <div class="stage" role="img" aria-label="A tablet shares its screen with a laptop browser over one local line. The badge on the tablet reads Casting, 1 viewer.">
+      <div class="rig" id="rig">
+        <div class="plinth"></div>
+        <div class="tablet">
+          <div class="screen">
+            <svg class="slide" viewBox="0 0 320 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+              <rect width="320" height="200" fill="#0E0E10"/>
+              <rect x="26" y="26" width="118" height="10" rx="5" fill="#2A2A2E"/>
+              <rect x="26" y="44" width="76" height="8" rx="4" fill="#1F1F23"/>
+              <path class="ink" pathLength="1" d="M44 158 C 74 96, 116 86, 146 124 S 214 176, 252 106"/>
+              <path class="ink k2" pathLength="1" d="M236 104 L254 104 L250 122"/>
+            </svg>
+            <div class="badge"><span class="d"></span><span id="badgeTxt">Ready</span><span class="stop">Stop</span></div>
+          </div>
+          <i class="anc" data-thread style="right:7%;top:56%"></i>
+        </div>
+        <div class="laptop">
+          <div class="lid">
+            <div class="screen lscreen">
+              <div class="chrome"><i></i><i></i><i></i><span class="url">192.168.1.24:8080</span></div>
+              <div class="vp">
+                <span class="wait">Waiting for the cast</span>
+                <div class="mirror">
+                  <svg class="slide" viewBox="0 0 320 200" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+                    <rect width="320" height="200" fill="#0E0E10"/>
+                    <rect x="26" y="26" width="118" height="10" rx="5" fill="#2A2A2E"/>
+                    <rect x="26" y="44" width="76" height="8" rx="4" fill="#1F1F23"/>
+                    <path class="ink" pathLength="1" d="M44 158 C 74 96, 116 86, 146 124 S 214 176, 252 106"/>
+                    <path class="ink k2" pathLength="1" d="M236 104 L254 104 L250 122"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+            <i class="anc" data-thread style="left:9%;top:72%"></i>
+          </div>
+          <div class="base"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 01 HOW ------------------------------------------------------------- -->
+<section id="how" class="sec" aria-labelledby="h-how">
+  <div class="wrap">
+    <header class="rv" data-thread="left">
+      <p class="eyebrow"><span class="idx">01</span> Simple</p>
+      <h2 id="h-how">Start. Open. Watch.</h2>
+      <p class="lede">Nothing to install on the other screen. No sign-in anywhere.</p>
+    </header>
+    <aside class="note"><b>No 3D here.</b> Real screenshots from the Moto Pad and a phone go in these frames (open question Q7). The steps are staggered so the line cascades through them, step to step, the way the cast actually travels.</aside>
+    <ol class="steps">
+      <li class="step rv">
+        <div class="dev"><div class="tablet" data-thread><div class="screen">
+          <div class="ui"><div class="ui-title"><i></i>HushCast</div><div class="ui-btn">Start casting</div><div class="ui-chips"><span>Live</span><span>Listen</span><span>Cinema</span></div></div>
+          <div class="sheet">Start sharing your screen with HushCast?<div class="sheet-acts"><span>Cancel</span><span>Start</span></div></div>
+        </div></div></div>
+        <h3><span class="idx">1</span>Start</h3>
+        <p>Tap Start casting and allow screen sharing.</p>
+      </li>
+      <li class="step rv">
+        <div class="dev"><div class="tablet" data-thread><div class="screen">
+          <div class="qrwrap"><svg class="qr" id="qr" viewBox="-2 -2 29 29" role="img" aria-label="Placeholder QR code"></svg>
+            <div class="qrtext"><b>192.168.1.24:8080</b><span>or hushcast.local:8080</span><span>Same WiFi only</span></div></div>
+        </div></div></div>
+        <h3><span class="idx">2</span>Open</h3>
+        <p>On a computer or phone on the same WiFi, scan the QR code or type the address.</p>
+      </li>
+      <li class="step rv">
+        <div class="dev"><div class="laptop" data-thread><div class="lid"><div class="screen lscreen">
+          <div class="chrome"><i></i><i></i><i></i><span class="url">192.168.1.24:8080</span></div>
+          <div class="vp"><svg class="slide" viewBox="0 0 320 200" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+            <rect width="320" height="200" fill="#0E0E10"/><rect x="26" y="26" width="118" height="10" rx="5" fill="#2A2A2E"/><rect x="26" y="44" width="76" height="8" rx="4" fill="#1F1F23"/>
+            <path class="ink done" pathLength="1" d="M44 158 C 74 96, 116 86, 146 124 S 214 176, 252 106"/><path class="ink done" pathLength="1" d="M236 104 L254 104 L250 122"/></svg></div>
+        </div></div><div class="base"></div></div></div>
+        <h3><span class="idx">3</span>Watch</h3>
+        <p>It starts by itself. Tap Stop whenever you like.</p>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<!-- 02 MODES ----------------------------------------------------------- -->
+<section id="modes" class="sec" aria-labelledby="h-modes">
+  <div class="wrap">
+    <header class="rv" data-thread="left">
+      <p class="eyebrow"><span class="idx">02</span> Three modes</p>
+      <h2 id="h-modes">Draw something.<br>Watch it arrive.</h2>
+      <p class="lede">Pick a mode, then draw on the tablet. The other screen shows what the person watching would get.</p>
+    </header>
+    <aside class="note"><b>Scene C.</b> The experiment: visitors feel 0.2 s against 10 s instead of reading it. Live shows a second phone that says "This cast is full", so the one-viewer rule is visible. Listen removes the picture completely and shows listeners instead. In production the drawing canvas becomes a texture on the 3D tablet's screen.</aside>
+
+    <div class="tabs" role="tablist" aria-label="Choose a mode" id="modeTabs">
+      <button role="tab" id="tab-live" data-mode="live" aria-selected="true" aria-controls="play">Live</button>
+      <button role="tab" id="tab-listen" data-mode="listen" aria-selected="false" aria-controls="play" tabindex="-1">Listen</button>
+      <button role="tab" id="tab-cinema" data-mode="cinema" aria-selected="false" aria-controls="play" tabindex="-1">Cinema</button>
+    </div>
+
+    <div class="play" id="play" data-mode="live" role="tabpanel" aria-labelledby="tab-live">
+      <div class="pad-col">
+        <div class="tablet pad-dev" data-thread>
+          <div class="screen">
+            <canvas id="pad" role="img" aria-label="Drawing area. Draw here and watch it arrive on the other screen."></canvas>
+            <div class="np" aria-hidden="true"><div class="np-art"></div><div class="np-lines"><i></i><i></i></div><div class="np-bar"><i></i></div></div>
+            <span class="pad-hint">Draw here</span>
+          </div>
+          <span class="ring"></span><span class="ring"></span><span class="ring"></span>
+        </div>
+        <p class="cap">Your tablet</p>
+      </div>
+      <div class="out">
+        <div class="view v-live">
+          <div class="live-row">
+            <div class="laptop"><div class="lid"><div class="screen lscreen">
+              <div class="chrome"><i></i><i></i><i></i><span class="url">192.168.1.24:8080</span></div>
+              <div class="vp"><canvas id="vLive" aria-hidden="true"></canvas></div>
+            </div></div><div class="base"></div></div>
+            <div class="phone"><div class="screen"><p>This cast is full</p></div></div>
+          </div>
+          <p class="cap">The one viewer <span class="chip">about 0.2 s</span> <span class="muted">A second person is turned away.</span></p>
+        </div>
+        <div class="view v-listen">
+          <ul class="phones" aria-label="Two listeners connected. Up to ten with Unlock.">
+            <li class="on"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 15v-3a8 8 0 0 1 16 0v3" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="3" y="14" width="4.5" height="7" rx="1.6" fill="currentColor"/><rect x="16.5" y="14" width="4.5" height="7" rx="1.6" fill="currentColor"/></svg></li>
+            <li class="on"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 15v-3a8 8 0 0 1 16 0v3" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="3" y="14" width="4.5" height="7" rx="1.6" fill="currentColor"/><rect x="16.5" y="14" width="4.5" height="7" rx="1.6" fill="currentColor"/></svg></li>
+            <li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li>
+          </ul>
+          <p class="cap">2 listeners free <span class="chip">up to 10 with Unlock</span> <span class="muted">No picture is sent.</span></p>
+        </div>
+        <div class="view v-cinema">
+          <div class="tv"><div class="screen"><canvas id="vCinema" aria-hidden="true"></canvas></div></div>
+          <div class="tv-stand"></div>
+          <p class="cap"><span class="chip">about 10 s behind</span> <span id="countdown" class="muted">Draw on the tablet. It arrives here about 10 s later.</span></p>
+        </div>
+      </div>
+    </div>
+
+    <div class="mode-copy" aria-live="polite">
+      <h3 id="modeTitle">Live</h3>
+      <p id="modeText" class="muted">Your screen and sound with almost no delay, about 0.2 s. Made for drawing and presenting. One viewer at a time, up to 1080p.</p>
+      <p class="fine" style="margin-top:12px">Illustration. Real delay depends on your WiFi.</p>
+      <div class="play-actions"><button class="ghost" id="demoBtn" type="button">Draw for me</button><button class="ghost" id="clearBtn" type="button">Clear</button></div>
+    </div>
+  </div>
+</section>
+
+<!-- 03 PRIVACY --------------------------------------------------------- -->
+<section id="privacy" class="sec" aria-labelledby="h-privacy">
+  <div class="wrap">
+    <header class="rv" data-thread="left">
+      <p class="eyebrow"><span class="idx">03</span> Private</p>
+      <h2 id="h-privacy">The line never<br>leaves the house.</h2>
+      <p class="lede">Your stream goes from your device to a browser on the same WiFi. There is no server in the middle, so there is nothing to upload.</p>
+    </header>
+    <aside class="note"><b>Scene B.</b> No lock, no shield. The same line that has run down the whole page enters the house and stays inside. The internet link belongs to the house, not to HushCast. Unplug it and the stream keeps moving. If the visitor really goes offline, the scene reacts on its own.</aside>
+
+    <div class="house-wrap" id="houseWrap">
+      <svg class="house" viewBox="0 0 1000 640" role="img" aria-labelledby="houseT houseD">
+        <title id="houseT">Your home WiFi</title>
+        <desc id="houseD">Inside a house outline: a tablet, a WiFi router and a laptop, joined by one line. Outside, a grey cloud that the line never reaches.</desc>
+        <line class="h-floor" x1="40" y1="612" x2="960" y2="612"/>
+        <path class="h-outline" d="M120 612 V262 L500 70 L880 262 V612"/>
+        <path class="net-line" d="M520 430 C 600 350, 760 250, 858 152"/>
+        <g class="cloud">
+          <path d="M826 150 h96 a26 26 0 0 0 4 -51 a34 34 0 0 0 -62 -16 a24 24 0 0 0 -38 18 a25 25 0 0 0 0 49 z"/>
+          <path d="M818 166 L 934 64"/>
+        </g>
+        <text class="lbl dim" x="878" y="44" text-anchor="middle">The internet</text>
+        <text class="lbl dim" x="878" y="190" text-anchor="middle">Not used</text>
+
+        <g id="hTab" data-thread>
+          <rect class="dev" x="196" y="284" width="156" height="100" rx="12"/>
+          <rect class="dev-in" x="205" y="293" width="138" height="82" rx="6"/>
+          <circle cx="330" cy="304" r="4" fill="#34C759"/>
+        </g>
+        <text class="lbl" x="274" y="412" text-anchor="middle">Your tablet</text>
+
+        <g id="hRouter" data-thread>
+          <rect class="dev" x="440" y="418" width="120" height="34" rx="10"/>
+          <circle cx="470" cy="435" r="2.5" fill="#636366"/><circle cx="484" cy="435" r="2.5" fill="#636366"/><circle cx="498" cy="435" r="2.5" fill="#636366"/>
+        </g>
+        <text class="lbl" x="500" y="482" text-anchor="middle">Your WiFi router</text>
+
+        <g id="hLap" data-thread>
+          <rect class="dev" x="652" y="470" width="156" height="98" rx="8"/>
+          <rect class="dev-in" x="661" y="479" width="138" height="80" rx="4"/>
+          <rect class="dev" x="634" y="568" width="192" height="9" rx="4"/>
+        </g>
+        <text class="lbl" x="730" y="458" text-anchor="middle">A browser</text>
+      </svg>
+    </div>
+
+    <div class="switch-row">
+      <button class="switch" id="unplug" role="switch" aria-checked="false" type="button"><span class="track"><span class="knob"></span></span>Unplug the internet</button>
+      <p id="netState" aria-live="polite">Internet connected. The cast doesn't use it.</p>
+    </div>
+
+    <div class="truths rv">
+      <div class="truth"><p class="tag">What's true</p><h3>No account. No cloud. No upload.</h3><p>The app has no ads and no analytics. It keeps working on a WiFi with no internet at all.</p></div>
+      <div class="truth"><p class="tag">You can always see it</p><h3>The dot turns green.</h3><p>Android shows its own screen-capture notice, a small badge floats on screen, and the icon dot turns green. Stop is one tap.</p></div>
+      <div class="truth"><p class="tag">Plain truth</p><h3>There is no password yet.</h3><p>Anyone on the same WiFi who has the address can open the page. In Live, the first viewer takes the only seat. Cast on a network you trust.</p></div>
+      <div class="truth"><p class="tag">Plain truth</p><h3>It is not encrypted.</h3><p>The stream stays on your WiFi. That is the promise, and we don't claim more than that.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 04 PRICING --------------------------------------------------------- -->
+<section id="pricing" class="sec" aria-labelledby="h-pricing">
+  <div class="wrap">
+    <header class="rv" data-thread="left">
+      <p class="eyebrow"><span class="idx">04</span> Pricing</p>
+      <h2 id="h-pricing">Try everything.<br>Pay once.</h2>
+      <p class="lede">Your first 5 casts are fully unlocked. After that, Listen stays free forever. One purchase unlocks the rest. No subscription. No ads.</p>
+    </header>
+    <aside class="note"><b>An editorial pause.</b> No 3D and no canvas: the page goes still on purpose after three immersive chapters. Prices are plain text, not code, so nothing can calculate a wrong price. No buy button until the Play listing exists.</aside>
+    <table class="plans rv">
+      <caption class="sr">What you get free and with Unlock</caption>
+      <thead><tr><th scope="col"><span class="sr">Mode</span></th><th scope="col">Free forever</th><th scope="col" class="u">Unlock</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">Listen</th><td>Unlimited time, 2 listeners</td><td class="u">Up to 10 listeners</td></tr>
+        <tr><th scope="row">Live</th><td>Up to 720p, 7 minutes per cast</td><td class="u">Up to 1080p, no time limit</td></tr>
+        <tr><th scope="row">Cinema</th><td>Not included</td><td class="u">Included, up to 4K</td></tr>
+        <tr><th scope="row">Cost</th><td>Free</td><td class="u">One purchase</td></tr>
+      </tbody>
+    </table>
+    <div class="prices rv">
+      <div class="price"><div class="amt">₹89</div><p class="rg">India</p></div>
+      <div class="price"><div class="amt">$4.99</div><p class="rg">United States</p></div>
+      <div class="price"><div class="amt">€2.99</div><p class="rg">European Union, tax included</p></div>
+    </div>
+    <p class="fine pnote">Planned launch prices. Other countries: local pricing in Google Play. A cast counts after 2 minutes with a viewer connected. Refunds follow Google Play's policy.</p>
+  </div>
+</section>
+
+<!-- 05 LIMITS ---------------------------------------------------------- -->
+<section id="limits" class="sec" aria-labelledby="h-limits">
+  <div class="wrap">
+    <header class="rv" data-thread="left">
+      <p class="eyebrow"><span class="idx">05</span> Good to know</p>
+      <h2 id="h-limits">A few honest limits.</h2>
+    </header>
+    <aside class="note"><b>No motion at all.</b> Hairlines and plain words. Trust comes from how little this section performs.</aside>
+    <ul class="limits">
+      <li><b>Protected video stays private.</b><span>Apps that protect their video show black and silence. That is Android's rule, and HushCast does not get around it.</span></li>
+      <li><b>Rotation is set when you start.</b><span>Turn your device the way you want it before you tap Start.</span></li>
+      <li><b>Some WiFi keeps devices apart.</b><span>Some routers block devices from talking to each other. If that happens, try another network or a phone hotspot.</span></li>
+      <li><b>The number address always works.</b><span>hushcast.local:8080 works on some devices. The QR code and the number address always do.</span></li>
+      <li><b>A phone stays tall.</b><span>On a phone, the picture keeps the phone's tall shape in the browser.</span></li>
+    </ul>
+  </div>
+</section>
+
+<!-- 06 FAQ ------------------------------------------------------------- -->
+<section id="faq" class="sec" aria-labelledby="h-faq">
+  <div class="wrap">
+    <header class="rv" data-thread="left">
+      <p class="eyebrow"><span class="idx">06</span> Questions</p>
+      <h2 id="h-faq">Straight answers.</h2>
+    </header>
+    <div class="faq">
+      <details><summary>Who can see my screen?</summary><p class="ans">Anyone on the same WiFi who has the address. In Live only one person can watch at a time. You see the viewer count and can Stop at any moment. There is no password in this version, so use a network you trust.</p></details>
+      <details><summary>Is it encrypted?</summary><p class="ans">No. It stays on your local network and is not encrypted. We say "stays on your WiFi" and nothing more.</p></details>
+      <details><summary>Does it use the internet?</summary><p class="ans">No. It works on a WiFi with no internet. Only buying the unlock goes through Google Play.</p></details>
+      <details><summary>Why does Android show the microphone indicator?</summary><p class="ans">In Live and Listen, the audio engine opens the microphone only to keep time. The microphone sound is never sent. What is sent is the sound your apps play.</p></details>
+      <details><summary>Do I need an account?</summary><p class="ans">No. Not on your device, and not on the screen that watches.</p></details>
+      <details><summary>Which devices work?</summary><p class="ans">Android 10 or newer, phones and tablets. The person watching needs only a browser.</p></details>
+      <details><summary>How much delay is there?</summary><p class="ans">Live: about a fifth of a second. Cinema: about 10 seconds.</p></details>
+      <details><summary>Why is the picture black for Netflix and similar apps?</summary><p class="ans">Android blocks screen capture for protected video. HushCast cannot and does not get around it.</p></details>
+      <details><summary>What is the address I type?</summary><p class="ans">The app shows it under the QR code. hushcast.local:8080 works on some devices. The number address, like 192.168.1.24:8080, always works.</p></details>
+      <details><summary>It does not connect. What now?</summary><p class="ans">Make sure both devices are on the same WiFi. Some routers block devices from talking to each other. Try another network or a phone hotspot.</p></details>
+      <details><summary>Is HushCast free?</summary><p class="ans">Your first 5 casts have everything unlocked. After that, Listen stays free with 2 listeners, and Live is free up to 720p for 7 minutes per cast. One purchase unlocks everything.</p></details>
+      <details><summary>Can I get a refund?</summary><p class="ans">Purchases go through Google Play and follow its refund policy.</p></details>
+    </div>
+  </div>
+</section>
+
+<!-- 07 END ------------------------------------------------------------- -->
+<section id="end" class="sec end" aria-labelledby="h-end">
+  <div class="wrap">
+    <header data-thread="left">
+      <p class="eyebrow"><span class="idx">07</span> In your control</p>
+      <h2 id="h-end">Your screen. Your WiFi.<br>Your call.</h2>
+      <p class="lede">The dot on the icon tells you what is happening. Red is idle. Green is casting. Stop is always one tap.</p>
+    </header>
+    <button class="icon" id="dot" type="button" aria-pressed="false" aria-label="HushCast icon. Turn casting on or off, demo only." data-thread>
+      <span class="ph" aria-hidden="true">H-Stroke<br>SVG here</span>
+      <span class="dot" aria-hidden="true"></span>
+    </button>
+    <p class="dotcap" id="dotCap" aria-live="polite">Idle</p>
+    <p class="fine">Tap the icon.</p>
+    <div class="cta-row"><span class="soon">Coming soon to Google Play</span></div>
+    <aside class="note"><b>Scene D.</b> The line that started at the hero ends inside the icon. Tap it: idle to casting. The logo dot in the navigation changes too, because the icon is the status light. The dashed box is where the supplied H-Stroke vector goes. It is not redrawn here, on purpose.</aside>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap foot-in">
+    <div>
+      <a class="logo" href="#top"><span class="logo-dot" aria-hidden="true"></span>HushCast</a>
+      <p class="fine" style="margin-top:6px">No trackers on this site.</p>
+    </div>
+    <nav aria-label="Legal"><a href="#">Privacy policy</a><a href="#">Terms</a><a href="#">Support</a></nav>
+    <p class="proof">Requests from this page to other websites: <b id="tp">0</b>. Counted live in your browser.</p>
+  </div>
+  <div class="wrap"><aside class="note"><b>The site keeps the promise in public.</b> This number comes from your browser's own resource timing. It is not typed in. If anyone ever adds a tracker, the footer shows it.</aside></div>
+</footer>
+
+<div class="mbar"><span class="soon">Coming soon to Google Play</span></div>
+<button class="notes-btn" id="notesBtn" type="button" aria-pressed="false">Director's notes</button>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(() => {
+'use strict';
+const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const NS = 'http://www.w3.org/2000/svg';
+
+/* ---------------- toast ---------------- */
+const toastEl = $('#toast'); let toastT;
+function toast(msg){ toastEl.textContent = msg; toastEl.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => toastEl.classList.remove('show'), 5600); }
+
+/* ---------------- QR placeholder ---------------- */
+(function(){
+  const N = 25; let seed = 11; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const inF = (x, y) => (x < 8 && y < 8) || (x > N - 9 && y < 8) || (x < 8 && y > N - 9);
+  const f = (x, y) => `<rect x="${x}" y="${y}" width="7" height="7" fill="#0B0B0D"/><rect x="${x+1}" y="${y+1}" width="5" height="5" fill="#F5F5F7"/><rect x="${x+2}" y="${y+2}" width="3" height="3" fill="#0B0B0D"/>`;
+  let m = '';
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) if (!inF(x, y) && rnd() > .5) m += `<rect x="${x}" y="${y}" width="1" height="1"/>`;
+  $('#qr').innerHTML = `<rect x="-2" y="-2" width="29" height="29" rx="1.5" fill="#F5F5F7"/><g fill="#0B0B0D">${m}</g>${f(0,0)}${f(N-7,0)}${f(0,N-7)}`;
+})();
+
+/* ---------------- the thread ---------------- */
+const tsvg = $('#thread'), tGhost = $('#threadGhost'), tPath = $('#threadPath'), tTip = $('#threadTip'), tHalo = $('#threadHalo'), tNodes = $('#threadNodes'), packet = $('#packet');
+const T = { total: 0, samples: [], anchors: [], intro: 0, introDone: false, ready: false };
+let drawn = 0;
+
+function anchorPoint(el, W){
+  const r = el.getBoundingClientRect();
+  if (!r.width && !r.height) return null;
+  const kind = el.dataset.thread || 'center';
+  let x = r.left + scrollX + r.width / 2, y = r.top + scrollY + r.height / 2;
+  if (kind === 'left'){ x = r.left + scrollX - 30; y = r.top + scrollY + 26; }
+  return { x: clamp(x, 14, W - 14), y, kind, el };
+}
+function buildThread(){
+  const W = document.documentElement.clientWidth;
+  tsvg.style.width = W + 'px'; tsvg.style.height = '0px';
+  const H = document.documentElement.scrollHeight;
+  tsvg.setAttribute('viewBox', `0 0 ${W} ${H}`); tsvg.style.height = H + 'px';
+  const pts = $$('[data-thread]').flatMap(el => {
+    const a = anchorPoint(el, W); if (!a) return [];
+    if (a.kind !== 'left') return [a];
+    const r = el.getBoundingClientRect();
+    return [a, { x: a.x, y: r.bottom + scrollY + 12, kind: 'gutter', el }];
+  });
+  if (pts.length < 2) return;
+  let d = `M${pts[0].x.toFixed(1)},${pts[0].y.toFixed(1)}`; const segs = [];
+  for (let i = 1; i < pts.length; i++){
+    const a = pts[i-1], b = pts[i], k = (b.y - a.y) * 0.5;
+    const c = ` C${a.x.toFixed(1)},${(a.y + k).toFixed(1)} ${b.x.toFixed(1)},${(b.y - k).toFixed(1)} ${b.x.toFixed(1)},${b.y.toFixed(1)}`;
+    d += c; segs.push(`M${a.x.toFixed(1)},${a.y.toFixed(1)}` + c);
+  }
+  tGhost.setAttribute('d', d); tPath.setAttribute('d', d);
+  const tmp = document.createElementNS(NS, 'path'); tsvg.appendChild(tmp);
+  const samples = [{ l: 0, y: pts[0].y }]; let acc = 0; pts[0].len = 0;
+  segs.forEach((s, i) => {
+    tmp.setAttribute('d', s); const L = tmp.getTotalLength(); const n = Math.max(4, Math.ceil(L / 12));
+    for (let j = 1; j <= n; j++){ const p = tmp.getPointAtLength(L * j / n); samples.push({ l: acc + L * j / n, y: p.y }); }
+    acc += L; pts[i+1].len = acc;
+  });
+  tmp.remove();
+  let m = -Infinity; for (const s of samples){ m = Math.max(m, s.y); s.my = m; }
+  T.total = acc; T.samples = samples; T.anchors = pts;
+  tPath.style.strokeDasharray = `${acc} ${acc}`;
+  tNodes.textContent = '';
+  pts.forEach(p => { if (p.kind === 'left'){ const c = document.createElementNS(NS, 'circle'); c.setAttribute('cx', p.x); c.setAttribute('cy', p.y); c.setAttribute('r', 4); tNodes.appendChild(c); p.node = c; } });
+  if (T.introDone || RM) T.intro = pts[1].len;
+  T.ready = true; renderThread();
+}
+function lenAtY(y){
+  const s = T.samples; if (!s.length || y <= s[0].my) return 0;
+  let lo = 0, hi = s.length - 1; if (y >= s[hi].my) return T.total;
+  while (hi - lo > 1){ const mid = (lo + hi) >> 1; if (s[mid].my < y) lo = mid; else hi = mid; }
+  const a = s[lo], b = s[hi]; return a.l + (b.l - a.l) * clamp((y - a.my) / Math.max(1e-6, b.my - a.my), 0, 1);
+}
+function renderThread(){
+  if (!T.ready) return;
+  let target;
+  if (RM) target = T.total;
+  else if (!T.introDone) target = T.intro;
+  else target = Math.max(T.anchors[1].len, lenAtY(scrollY + innerHeight * 0.64));
+  drawn = Math.min(T.total, target);
+  tPath.style.strokeDashoffset = T.total - drawn;
+  const showTip = !RM && drawn > 2 && drawn < T.total - 2;
+  if (showTip){ const p = tPath.getPointAtLength(drawn); tTip.setAttribute('cx', p.x); tTip.setAttribute('cy', p.y); tHalo.setAttribute('cx', p.x); tHalo.setAttribute('cy', p.y); }
+  tTip.style.opacity = tHalo.style.opacity = showTip ? 1 : 0;
+  for (const a of T.anchors) if (a.node) a.node.classList.toggle('on', drawn >= a.len - 1);
+}
+
+/* ---------------- hero ---------------- */
+const hero = $('#top'), rig = $('#rig'), badgeTxt = $('#badgeTxt');
+let mx = 0, my = 0;
+function rigUpdate(){
+  if (RM) return;
+  const p = clamp(scrollY / innerHeight, 0, 1);
+  rig.style.transform = `rotateX(${(9 - p * 5 + my * 2).toFixed(2)}deg) rotateY(${(-16 + p * 7 + mx * 3).toFixed(2)}deg)`;
+}
+hero.addEventListener('pointermove', e => {
+  if (e.pointerType !== 'mouse' || RM) return;
+  const r = hero.getBoundingClientRect(); mx = (e.clientX - r.left) / r.width - .5; my = (e.clientY - r.top) / r.height - .5; rigUpdate();
+});
+function heroIntro(){
+  if (RM){ hero.classList.add('s1','s2','s3','s4'); badgeTxt.textContent = 'Casting · 1 viewer'; T.introDone = true; renderThread(); return; }
+  setTimeout(() => hero.classList.add('s1'), 120);
+  setTimeout(() => hero.classList.add('s2'), 900);
+  setTimeout(() => { hero.classList.add('s3'); badgeTxt.textContent = 'Casting · 1 viewer'; growIntro(); }, 1700);
+}
+function growIntro(){
+  const t0 = performance.now(), dur = 900;
+  (function f(now){
+    const k = clamp((now - t0) / dur, 0, 1), e = 1 - Math.pow(1 - k, 3);
+    T.intro = (T.anchors[1] ? T.anchors[1].len : 0) * e; renderThread();
+    if (k < 1) requestAnimationFrame(f); else { T.introDone = true; hero.classList.add('s4'); renderThread(); }
+  })(t0);
+}
+
+/* ---------------- modes playground ---------------- */
+const play = $('#play'), tabs = $$('[role=tab]', $('#modeTabs'));
+const padEl = $('#pad'), cd = $('#countdown'), demoBtn = $('#demoBtn');
+const COPY = {
+  live:   ['Live',   'Your screen and sound with almost no delay, about 0.2 s. Made for drawing and presenting. One viewer at a time, up to 1080p.'],
+  listen: ['Listen', 'Just the sound. No screen is captured or sent. Up to 10 listeners, 2 on the free plan.'],
+  cinema: ['Cinema', 'The sharpest picture, up to the 4K setting, about 10 s behind. Made for watching, not presenting.']
+};
+const DELAY = { live: 200, cinema: 10000 };
+let mode = 'live', pts = [], vi = 0, raf = 0, userDrew = false, demo = null, penDown = false, playSeen = false;
+const C = {};
+function fitCanvas(c){
+  const r = c.getBoundingClientRect(); if (!r.width || !r.height) return null;
+  const dpr = Math.min(2, devicePixelRatio || 1);
+  c.width = Math.round(r.width * dpr); c.height = Math.round(r.height * dpr);
+  const ctx = c.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = '#F5F5F7'; ctx.fillStyle = '#F5F5F7';
+  return { c, ctx, w: r.width, h: r.height };
+}
+const padBox = () => ({ x: 0, y: 0, w: C.pad.w, h: C.pad.h });
+function viewBox(v){ const a = C.pad.w / C.pad.h; let w = v.w, h = w / a; if (h > v.h){ h = v.h; w = h * a; } return { x: (v.w - w) / 2, y: (v.h - h) / 2, w, h }; }
+function seg(o, b, p, q, lw){
+  const ctx = o.ctx; ctx.lineWidth = lw;
+  if (!p){ ctx.beginPath(); ctx.arc(b.x + q.x * b.w, b.y + q.y * b.h, lw / 2, 0, Math.PI * 2); ctx.fill(); return; }
+  ctx.beginPath(); ctx.moveTo(b.x + p.x * b.w, b.y + p.y * b.h); ctx.lineTo(b.x + q.x * b.w, b.y + q.y * b.h); ctx.stroke();
+}
+const activeView = () => mode === 'live' ? C.live : mode === 'cinema' ? C.cin : null;
+function redrawAll(){
+  if (!C.pad) return;
+  C.pad.ctx.clearRect(0, 0, C.pad.w, C.pad.h);
+  pts.forEach((q, i) => seg(C.pad, padBox(), q.s ? null : pts[i-1], q, 3));
+  [C.live, C.cin].forEach(v => v && v.ctx.clearRect(0, 0, v.w, v.h));
+  const v = activeView(); if (!v) return;
+  const b = viewBox(v), lw = Math.max(1.5, 3 * b.w / C.pad.w);
+  for (let i = 0; i < vi; i++) seg(v, b, pts[i].s ? null : pts[i-1], pts[i], lw);
+}
+function fitCanvases(){ C.pad = fitCanvas(padEl); C.live = fitCanvas($('#vLive')); C.cin = fitCanvas($('#vCinema')); redrawAll(); }
+function addPoint(x, y, s){
+  if (!C.pad) return;
+  if (pts.length > 8000){ pts = []; vi = 0; redrawAll(); s = true; }
+  const q = { t: performance.now(), x, y, s }; const prev = s ? null : pts[pts.length - 1];
+  pts.push(q); seg(C.pad, padBox(), prev, q, 3); kick();
+}
+function stepViewer(){
+  const v = activeView(); if (!v || !C.pad) return false;
+  const now = performance.now(), d = DELAY[mode], b = viewBox(v), lw = Math.max(1.5, 3 * b.w / C.pad.w);
+  while (vi < pts.length && pts[vi].t + d <= now){ seg(v, b, pts[vi].s ? null : pts[vi-1], pts[vi], lw); vi++; }
+  if (mode === 'cinema'){
+    cd.textContent = vi < pts.length ? `Next stroke arrives in about ${Math.max(1, Math.ceil((pts[vi].t + d - now) / 1000))} s.`
+      : (pts.length ? 'Caught up.' : 'Draw on the tablet. It arrives here about 10 s later.');
+  }
+  return vi < pts.length;
+}
+function kick(){ if (!raf) raf = requestAnimationFrame(tick); }
+function tick(){ raf = 0; const more = stepViewer(); if (more || demo) raf = requestAnimationFrame(tick); }
+function stopDemo(){ demo = null; }
+function clearAll(){ stopDemo(); pts = []; vi = 0; redrawAll(); stepViewer(); }
+const DEMO = (() => {
+  const a = [];
+  for (let i = 0; i <= 90; i++){ const t = i / 90; a.push({ x: .1 + .6 * t, y: .58 - .22 * Math.sin(t * Math.PI * 3) * (1 - .3 * t), s: i === 0 }); }
+  for (let i = 0; i <= 48; i++){ const t = i / 48 * Math.PI * 2; a.push({ x: .83 + .075 * Math.cos(t), y: .42 + .12 * Math.sin(t), s: i === 0 }); }
+  return a;
+})();
+function runDemo(){
+  if (mode === 'listen') return;
+  clearAll(); const t0 = performance.now(), dur = 2300; let k = 0; const token = demo = { t0 };
+  (function f(now){
+    if (demo !== token) return;
+    const n = Math.floor(clamp((now - t0) / dur, 0, 1) * DEMO.length);
+    while (k < n){ const p = DEMO[k++]; addPoint(p.x, p.y, p.s); }
+    if (k < DEMO.length) requestAnimationFrame(f); else demo = null;
+  })(t0);
+}
+padEl.addEventListener('pointerdown', e => {
+  if (mode === 'listen') return;
+  stopDemo(); userDrew = true; penDown = true; padEl.setPointerCapture(e.pointerId);
+  const r = padEl.getBoundingClientRect(); addPoint((e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height, true); e.preventDefault();
+});
+padEl.addEventListener('pointermove', e => {
+  if (!penDown) return;
+  const r = padEl.getBoundingClientRect();
+  let evs = e.getCoalescedEvents ? e.getCoalescedEvents() : []; if (!evs.length) evs = [e];
+  for (const ev of evs) addPoint(clamp((ev.clientX - r.left) / r.width, 0, 1), clamp((ev.clientY - r.top) / r.height, 0, 1), false);
+});
+['pointerup', 'pointercancel'].forEach(t => padEl.addEventListener(t, () => { penDown = false; }));
+function setMode(m, focus){
+  if (m === mode) return; mode = m;
+  tabs.forEach(t => { const on = t.dataset.mode === m; t.setAttribute('aria-selected', on); t.tabIndex = on ? 0 : -1; if (on){ play.setAttribute('aria-labelledby', t.id); if (focus) t.focus(); } });
+  play.dataset.mode = m;
+  $('#modeTitle').textContent = COPY[m][0]; $('#modeText').textContent = COPY[m][1];
+  demoBtn.disabled = m === 'listen'; $('#clearBtn').disabled = m === 'listen';
+  clearAll();
+  if (!userDrew && !RM && m !== 'listen') setTimeout(() => { if (mode === m) runDemo(); }, 650);
+}
+tabs.forEach((t, i) => {
+  t.addEventListener('click', () => setMode(t.dataset.mode));
+  t.addEventListener('keydown', e => {
+    const map = { ArrowRight: (i + 1) % tabs.length, ArrowLeft: (i - 1 + tabs.length) % tabs.length, Home: 0, End: tabs.length - 1 };
+    if (e.key in map){ e.preventDefault(); setMode(tabs[map[e.key]].dataset.mode, true); }
+  });
+});
+demoBtn.addEventListener('click', runDemo);
+$('#clearBtn').addEventListener('click', clearAll);
+
+/* ---------------- privacy ---------------- */
+const houseWrap = $('#houseWrap'), unplug = $('#unplug'), netState = $('#netState');
+function setUnplugged(on){
+  unplug.setAttribute('aria-checked', on); houseWrap.classList.toggle('unplugged', on);
+  netState.textContent = on ? 'Internet unplugged. The cast keeps going on your WiFi.' : "Internet connected. The cast doesn't use it.";
+}
+unplug.addEventListener('click', () => setUnplugged(unplug.getAttribute('aria-checked') !== 'true'));
+addEventListener('offline', () => { setUnplugged(true); toast('You just went offline. This page kept working, and HushCast keeps casting on a WiFi with no internet.'); });
+addEventListener('online', () => { setUnplugged(false); toast("You're back online. The cast never needed it."); });
+let pRaf = 0, pVis = false;
+function packetTick(now){
+  pRaf = 0; if (!pVis || RM){ packet.style.opacity = 0; return; }
+  const a = T.anchors.find(p => p.el.id === 'hTab'), b = T.anchors.find(p => p.el.id === 'hLap');
+  if (a && b && drawn >= b.len - 1){
+    const k = (now % 2800) / 2800, e = k < .5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+    const p = tPath.getPointAtLength(a.len + (b.len - a.len) * e);
+    packet.setAttribute('cx', p.x); packet.setAttribute('cy', p.y); packet.style.opacity = 1;
+  } else packet.style.opacity = 0;
+  pRaf = requestAnimationFrame(packetTick);
+}
+
+/* ---------------- closing icon ---------------- */
+const dot = $('#dot'), dotCap = $('#dotCap');
+dot.addEventListener('click', () => {
+  const on = dot.getAttribute('aria-pressed') !== 'true';
+  dot.setAttribute('aria-pressed', on); dotCap.textContent = on ? 'Casting' : 'Idle'; document.body.classList.toggle('live', on);
+});
+
+/* ---------------- third-party request counter ---------------- */
+const tp = $('#tp');
+function countTP(){
+  let n = 0;
+  for (const e of performance.getEntriesByType('resource')){
+    try { const u = new URL(e.name, location.href); if (/^https?:$/.test(u.protocol) && u.origin !== location.origin) n++; } catch (_) {}
+  }
+  tp.textContent = n;
+}
+try { new PerformanceObserver(countTP).observe({ type: 'resource', buffered: true }); } catch (_) {}
+
+/* ---------------- notes ---------------- */
+$('#notesBtn').addEventListener('click', e => { const on = document.body.classList.toggle('show-notes'); e.currentTarget.setAttribute('aria-pressed', on); });
+
+/* ---------------- observers ---------------- */
+const io = new IntersectionObserver(es => es.forEach(e => {
+  const el = e.target;
+  if (el.classList.contains('rv') && e.isIntersecting) el.classList.add('in');
+  if (el === play){
+    el.classList.toggle('inview', e.isIntersecting);
+    if (e.isIntersecting && e.intersectionRatio >= .3 && !playSeen && !userDrew && !RM){ playSeen = true; setTimeout(runDemo, 350); }
+  }
+  if (el.id === 'privacy'){ pVis = e.isIntersecting; if (pVis && !pRaf && !RM) pRaf = requestAnimationFrame(packetTick); }
+}), { threshold: [0, .15, .3] });
+$$('.rv').forEach(el => io.observe(el)); io.observe(play); io.observe($('#privacy'));
+
+let ticking = false;
+addEventListener('scroll', () => { if (ticking) return; ticking = true; requestAnimationFrame(() => { ticking = false; renderThread(); rigUpdate(); }); }, { passive: true });
+let rb; const rebuild = () => { clearTimeout(rb); rb = setTimeout(() => { buildThread(); fitCanvases(); }, 120); };
+addEventListener('resize', rebuild);
+if ('ResizeObserver' in window) new ResizeObserver(rebuild).observe(document.body);
+
+/* ---------------- start ---------------- */
+buildThread(); fitCanvases(); countTP(); heroIntro(); stepViewer();
+addEventListener('load', () => { buildThread(); countTP(); });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+<!-- The road and its walker, in three layers so scrolling never repaints the whole road:
+     #thread (the static road: edge, surface, dashed centre line, milestones), #threadLive (the green
+     line painted behind the walker), #walker (a small stick
+     figure carrying a green light, moved by transform only). -->
+<svg id="thread" aria-hidden="true" focusable="false">
+  <path id="roadEdge"/><path id="roadSurf"/><path id="threadGhost"/><g id="threadNodes"></g>
+</svg>
+<svg id="threadLive" aria-hidden="true" focusable="false">
+  <path id="threadPath"/><circle id="roadPacket" r="4"/>
+</svg>
+<svg id="walker" aria-hidden="true" focusable="false" width="40" height="40" viewBox="-20 -36 40 40">
+  <ellipse class="w-shadow" cx="0" cy="0.5" rx="6" ry="1.8"/>
+  <g id="walkerBody">
+    <line class="w-limb w-back" id="wLegB"/><line class="w-limb w-back" id="wArmB"/>
+    <line class="w-limb" id="wTorso"/><line class="w-limb" id="wLegF"/><line class="w-limb" id="wArmF"/>
+    <circle class="w-head" id="wHead" r="3.3"/>
+    <!-- he carries the stream: a small green light in his hand -->
+    <circle class="w-glow" id="wGlow" r="5.5"/><circle class="w-lamp" id="wLamp" r="2.1"/>
+  </g>
+</svg>

@@ -1,0 +1,15 @@
+---
+import { site } from '../../content/copy';
+interface Props { thread?: boolean; bare?: boolean }
+const { thread = false, bare = false } = Astro.props;
+---
+<div class="laptop" data-stop={thread ? '' : undefined} data-visit={thread ? '' : undefined}>
+  <div class="lid">
+    <div class="screen lscreen">
+      {!bare && <div class="chrome"><i></i><i></i><i></i><span class="url">{site.address}</span></div>}
+      <div class="vp"><slot /></div>
+    </div>
+    <slot name="lid" />
+  </div>
+  <div class="base"></div>
+</div>

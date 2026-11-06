@@ -1,0 +1,17 @@
+---
+import SectionHead from './SectionHead.astro';
+import { pricing as p } from '../content/copy';
+---
+<section id="pricing" class="sec" aria-labelledby="h-pricing">
+  <div class="wrap">
+    <SectionHead id="h-pricing" idx={p.idx} eyebrow={p.eyebrow} h2={p.h2} lede={p.lede} />
+    <table class="plans rv" data-thread="left">
+      <caption class="sr">{p.caption}</caption>
+      <thead><tr><th scope="col"><span class="sr">{p.head.mode}</span></th><th scope="col">{p.head.free}</th><th scope="col" class="u">{p.head.unlock}</th></tr></thead>
+      <tbody>
+        {p.rows.map(([a, b, c]) => <tr><th scope="row">{a}</th><td>{b}</td><td class="u">{c}</td></tr>)}
+      </tbody>
+    </table>
+    <p class="fine pnote">{p.note}</p>
+  </div>
+</section>
