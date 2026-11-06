@@ -26,3 +26,10 @@ pnpm-debug.log*
 # local backups and Playwright MCP scratch
 _backup/
 .playwright-mcp/
+
+# not needed to build or host the site (kept locally)
+blender/
+docs/
+BUILD_PLAN.md
+AGENTS.md
+CLAUDE.md
